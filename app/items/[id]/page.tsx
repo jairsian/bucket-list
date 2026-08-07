@@ -446,7 +446,7 @@ export default function ItemDetail() {
                 onClick={handleExportCalendar}
                 className="px-4 py-2 border border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md font-medium disabled:opacity-50"
               >
-                📅 Export
+                📅 Add to Calendar
               </button>
 
               <button
