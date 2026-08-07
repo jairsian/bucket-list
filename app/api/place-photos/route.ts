@@ -5,13 +5,12 @@ const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 export async function GET(request: NextRequest) {
   try {
     const placeId = request.nextUrl.searchParams.get('placeId');
-    const selectedPhotoIndex = parseInt(request.nextUrl.searchParams.get('selectedPhotoIndex') || '0', 10);
 
     if (!placeId || !GOOGLE_MAPS_API_KEY) {
       return NextResponse.json({ error: 'Missing placeId or API key' }, { status: 400 });
     }
 
-    // Use new Places API (v1) to get photos
+    // Fetch all photos from Places API v1 (limit to 5)
     try {
       const response = await fetch(
         `https://places.googleapis.com/v1/places/${placeId}?fields=photos&key=${GOOGLE_MAPS_API_KEY}`
@@ -21,26 +20,27 @@ export async function GET(request: NextRequest) {
         const data = await response.json();
 
         if (data.photos && data.photos.length > 0) {
-          // Use the selected photo index (default to 0 if out of bounds)
-          const photoIndex = Math.min(selectedPhotoIndex, data.photos.length - 1);
-          const selectedPhoto = data.photos[photoIndex];
-          const photoName = selectedPhoto.name;
+          // Limit to 5 photos
+          const photos = data.photos.slice(0, 5).map((photo: any, index: number) => ({
+            index,
+            name: photo.name,
+            widthPx: photo.widthPx,
+            heightPx: photo.heightPx,
+            photoUrl: `https://places.googleapis.com/v1/${photo.name}/media?max_height_px=400&max_width_px=600&key=${GOOGLE_MAPS_API_KEY}`,
+          }));
 
-          // Use the correct endpoint to get the photo media
-          const photoUrl = `https://places.googleapis.com/v1/${photoName}/media?max_height_px=400&max_width_px=600&key=${GOOGLE_MAPS_API_KEY}`;
-
-          return NextResponse.json({ photoUrl });
+          return NextResponse.json({ photos });
         }
       }
     } catch (error) {
       console.error('Error fetching from Places API:', error);
     }
 
-    return NextResponse.json({ photoUrl: null });
+    return NextResponse.json({ photos: [] });
   } catch (error) {
-    console.error('Error fetching place photo:', error);
+    console.error('Error fetching place photos:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to fetch photo' },
+      { error: error instanceof Error ? error.message : 'Failed to fetch photos' },
       { status: 500 }
     );
   }

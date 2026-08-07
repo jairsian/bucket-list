@@ -5,9 +5,9 @@ import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Item } from '@/lib/supabase';
 import Link from 'next/link';
-import Image from 'next/image';
 import { searchPlaces, getPlaceDetails, PlaceSearchResult } from '@/lib/places';
 import { TagSelector } from '@/components/TagSelector';
+import { PhotoSelector } from '@/components/PhotoSelector';
 
 export default function ItemDetail() {
   const router = useRouter();
@@ -27,6 +27,8 @@ export default function ItemDetail() {
   const [searching, setSearching] = useState(false);
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
   const [itemTags, setItemTags] = useState<any[]>([]);
+  const [showPhotoSelector, setShowPhotoSelector] = useState(false);
+  const [itemPhotoUrl, setItemPhotoUrl] = useState<string | null>(null);
   const [editData, setEditData] = useState({
     title: '',
     type: 'venue' as 'event' | 'venue' | 'activity' | 'destination',
@@ -62,6 +64,22 @@ export default function ItemDetail() {
 
       if (item) {
         setItem(item);
+
+        // Fetch photo if item has a place ID
+        if (item.google_place_id) {
+          try {
+            const selectedPhotoIndex = item.selected_photo_index || 0;
+            const photoResponse = await fetch(
+              `/api/place-photo?placeId=${item.google_place_id}&selectedPhotoIndex=${selectedPhotoIndex}`
+            );
+            if (photoResponse.ok) {
+              const photoData = await photoResponse.json();
+              setItemPhotoUrl(photoData.photoUrl);
+            }
+          } catch (error) {
+            console.error('Error fetching item photo:', error);
+          }
+        }
 
         // Fetch tags for this item
         try {
@@ -232,6 +250,44 @@ export default function ItemDetail() {
     }
   }
 
+  async function handlePhotoSelect(photoIndex: number) {
+    if (!item || !session) return;
+
+    try {
+      const response = await fetch('/api/item-photo', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          itemId: item.id,
+          photoIndex,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update photo');
+
+      // Update item with new selected photo index
+      const updatedItem = { ...item, selected_photo_index: photoIndex };
+      setItem(updatedItem);
+
+      // Fetch the new photo URL
+      if (item.google_place_id) {
+        const photoResponse = await fetch(
+          `/api/place-photo?placeId=${item.google_place_id}&selectedPhotoIndex=${photoIndex}`
+        );
+        if (photoResponse.ok) {
+          const photoData = await photoResponse.json();
+          setItemPhotoUrl(photoData.photoUrl);
+        }
+      }
+    } catch (error) {
+      console.error('Error updating photo:', error);
+      alert('Failed to update photo');
+    }
+  }
+
   async function handleDelete() {
     if (!item || !session) return;
 
@@ -378,14 +434,22 @@ export default function ItemDetail() {
 
         <div className="bg-card rounded-xl border border-border overflow-hidden">
           {/* Image */}
-          <div className="relative h-96 bg-muted overflow-hidden">
-            <Image
-              src={getPlaceholderImage(item.type)}
+          <div className="relative h-96 bg-muted overflow-hidden group">
+            <img
+              src={itemPhotoUrl || getPlaceholderImage(item.type)}
               alt={item.title}
-              fill
-              className="object-cover"
-              priority
+              className="w-full h-full object-cover"
             />
+
+            {/* Change Image Button */}
+            {item.google_place_id && (
+              <button
+                onClick={() => setShowPhotoSelector(true)}
+                className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors opacity-0 group-hover:opacity-100"
+              >
+                Change Image
+              </button>
+            )}
           </div>
 
           {/* Content */}
@@ -762,6 +826,16 @@ export default function ItemDetail() {
                 </div>
               </div>
             </div>
+            )}
+
+            {/* Photo Selector Modal */}
+            {showPhotoSelector && item?.google_place_id && (
+              <PhotoSelector
+                placeId={item.google_place_id}
+                selectedIndex={item.selected_photo_index || 0}
+                onSelect={handlePhotoSelect}
+                onClose={() => setShowPhotoSelector(false)}
+              />
             )}
             </div>
           </div>
