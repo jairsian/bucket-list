@@ -19,6 +19,7 @@ export type Item = {
   visit_date: string | null;
   rating: number | null;
   notes: string | null;
+  website_url: string | null;
   image_url: string | null;
   google_maps_url: string | null;
   event_date: string | null;

@@ -24,6 +24,7 @@ export default function ItemDetail() {
     title: '',
     address: '',
     notes: '',
+    website_url: '',
     event_date: '',
     event_time: '',
   });
@@ -99,6 +100,7 @@ export default function ItemDetail() {
       title: item.title,
       address: item.address || '',
       notes: item.notes || '',
+      website_url: item.website_url || '',
       event_date: item.event_date || '',
       event_time: item.event_time || '',
     });
@@ -121,6 +123,7 @@ export default function ItemDetail() {
           title: editData.title,
           address: editData.address || null,
           notes: editData.notes || null,
+          website_url: editData.website_url || null,
           event_date: editData.event_date || null,
           event_time: editData.event_time || null,
         }),
@@ -299,6 +302,22 @@ export default function ItemDetail() {
                   </div>
                 )}
 
+                {(item.type === 'venue' || item.type === 'activity') && (
+                  <div>
+                    <label htmlFor="website_url" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Website
+                    </label>
+                    <input
+                      id="website_url"
+                      type="url"
+                      value={editData.website_url}
+                      onChange={(e) => setEditData({ ...editData, website_url: e.target.value })}
+                      className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                      placeholder="https://example.com"
+                    />
+                  </div>
+                )}
+
                 {item.type === 'event' && (
                   <>
                     <div>
@@ -385,7 +404,7 @@ export default function ItemDetail() {
                 {/* Description/Notes */}
                 {item.notes && (
                   <p className="text-lg text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                    {item.notes.split('\n').filter(line => !line.startsWith('Website:')).join('\n').trim()}
+                    {item.notes}
                   </p>
                 )}
 
@@ -455,9 +474,9 @@ export default function ItemDetail() {
                 </a>
               )}
 
-              {item.notes && item.notes.includes('Website:') && (
+              {item.website_url && (
                 <a
-                  href={item.notes.split('\n').find(line => line.startsWith('Website:'))?.replace('Website: ', '') || '#'}
+                  href={item.website_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-foreground font-medium hover:opacity-75 transition-opacity"

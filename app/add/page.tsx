@@ -53,9 +53,6 @@ function AddItemContent() {
             setLatitude(place.geometry.location.lat);
             setLongitude(place.geometry.location.lng);
           }
-          if (place.rating) {
-            setRating(place.rating);
-          }
         } catch (error) {
           console.error('Error loading place:', error);
         }
@@ -121,11 +118,6 @@ function AddItemContent() {
 
     setSubmitting(true);
     try {
-      let combinedNotes = notes;
-      if (website) {
-        combinedNotes = combinedNotes ? `${combinedNotes}\n\nWebsite: ${website}` : `Website: ${website}`;
-      }
-
       const response = await fetch('/api/items', {
         method: 'POST',
         headers: {
@@ -139,7 +131,8 @@ function AddItemContent() {
           latitude: latitude || null,
           longitude: longitude || null,
           google_place_id: googlePlaceId || null,
-          notes: combinedNotes || null,
+          notes: notes || null,
+          website_url: website || null,
           event_date: type === 'event' && eventDate ? eventDate : null,
           event_time: type === 'event' && eventTime ? eventTime : null,
           visited: false,
