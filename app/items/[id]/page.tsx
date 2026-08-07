@@ -361,31 +361,10 @@ export default function ItemDetail() {
             </>
           ) : (
             <>
-              <div className="flex items-start justify-between mb-6">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">{item.title}</h1>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    <span className="inline-block px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 rounded text-sm font-medium">
-                      {item.type}
-                    </span>
-                  </p>
-                </div>
-
-                {item.visited && (
-                  <div className="text-center">
-                    <div className="text-3xl text-green-600">✓</div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Visited</p>
-                    {item.visit_date && (
-                      <p className="text-xs text-gray-500 dark:text-gray-500">{new Date(item.visit_date).toLocaleDateString()}</p>
-                    )}
-                  </div>
-                )}
-              </div>
-
               <div className="space-y-6 mb-8">
                 {/* Type Badge */}
                 <div className="flex gap-2">
-                  <span className={`${typeColors[item.type]?.badge || typeColors.venue.badge} px-3 py-1 rounded-full text-xs font-medium`}>
+                  <span className={`${typeColors[item.type]?.badge || typeColors.venue.badge} px-3 py-1 rounded text-xs font-medium`}>
                     {typeColors[item.type]?.text || 'Item'}
                   </span>
                 </div>
