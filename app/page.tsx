@@ -74,114 +74,109 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-card border-b border-border sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">📍</span>
+      <header className="bg-background border-b border-border">
+        <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">📍</span>
             <h1 className="text-2xl font-heading font-bold text-foreground">Bucket</h1>
           </div>
-          <div className="flex gap-2">
-            <Link
-              href="/add"
-              className="px-4 py-2 bg-muted hover:bg-muted/80 text-foreground rounded-md font-medium transition-colors duration-200"
-            >
-              + Add Item
+          <nav className="flex gap-8 items-center">
+            <Link href="/" className="text-foreground font-medium hover:opacity-75 transition-opacity">
+              Discover
             </Link>
-            <Link
-              href="/map"
-              className="px-4 py-2 bg-muted hover:bg-muted/80 text-foreground rounded-md font-medium transition-colors duration-200"
-            >
-              🗺️ Map
+            <Link href="/map" className="text-foreground font-medium hover:opacity-75 transition-opacity">
+              Map
             </Link>
-            <Link
-              href="/tags"
-              className="px-4 py-2 bg-muted hover:bg-muted/80 text-foreground rounded-md font-medium transition-colors duration-200"
-            >
-              🏷️ Tags
-            </Link>
-          </div>
+          </nav>
+          <Link
+            href="/add"
+            className="px-4 py-2 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors duration-200"
+          >
+            Sign in
+          </Link>
         </div>
       </header>
 
       {/* Main content */}
-      <main className="max-w-5xl mx-auto px-6 py-12">
+      <main className="max-w-7xl mx-auto px-6 py-16">
         {items.length === 0 ? (
-          <div className="text-center py-24">
-            <div className="text-6xl mb-6">🗺️</div>
-            <p className="text-lg text-muted-foreground mb-8">No items yet. Start by adding something to your bucket list!</p>
+          <div className="text-center py-32">
+            <div className="text-7xl mb-8">🗺️</div>
+            <p className="text-2xl font-heading text-foreground mb-4">Start your bucket list</p>
+            <p className="text-lg text-muted-foreground mb-12">Add destinations, activities, venues and events you want to experience.</p>
             <Link
               href="/add"
-              className="inline-block px-8 py-3 bg-primary text-primary-foreground rounded-md font-semibold hover:opacity-90 transition-opacity duration-200"
+              className="inline-block px-8 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:opacity-90 transition-opacity duration-200"
             >
               Add Your First Item
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {items.map((item) => {
               const itemTypeColors = typeColors[item.type] || typeColors.venue;
               const itemTypeText = itemTypeColors.text;
 
               return (
                 <Link key={item.id} href={`/items/${item.id}`} className="group">
-                  <div className="bg-card rounded-lg overflow-hidden border border-border hover:border-border/80 hover:shadow-sm transition-all duration-300 h-full flex flex-col">
+                  <div className="bg-card rounded-xl overflow-hidden border border-border hover:border-border/80 transition-all duration-300 h-full flex flex-col">
                     {/* Image */}
-                    <div className="relative h-56 bg-muted overflow-hidden">
+                    <div className="relative h-72 bg-muted overflow-hidden">
                       <Image
                         src={getPlaceholderImage(item.type)}
                         alt={item.title}
                         fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     </div>
 
                     {/* Content */}
-                    <div className="p-5 flex flex-col flex-grow">
-                      {/* Type Badge */}
-                      <div className="flex gap-2 mb-3">
-                        <span className={`${itemTypeColors.badge} px-2.5 py-1 rounded text-xs font-medium`}>
+                    <div className="p-6 flex flex-col flex-grow">
+                      {/* Type Badge + Tags */}
+                      <div className="flex gap-2 mb-4 flex-wrap">
+                        <span className={`${itemTypeColors.badge} px-3 py-1 rounded-full text-xs font-medium`}>
                           {itemTypeText}
                         </span>
                         {item.visited && (
-                          <span className="bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 px-2.5 py-1 rounded text-xs font-medium">
+                          <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium">
                             ✓ Visited
                           </span>
                         )}
                       </div>
 
                       {/* Title */}
-                      <h3 className="text-lg font-heading font-semibold text-foreground mb-2 line-clamp-2">
+                      <h3 className="text-xl font-heading font-semibold text-foreground mb-3 line-clamp-2">
                         {item.title}
                       </h3>
 
                       {/* Address */}
                       {item.address && (
-                        <div className="flex items-start gap-2 text-muted-foreground mb-3">
-                          <span className="text-base mt-0.5">📍</span>
-                          <span className="text-sm">{item.address}</span>
+                        <div className="flex items-start gap-2 text-muted-foreground mb-4">
+                          <span className="text-lg mt-0.5 flex-shrink-0">📍</span>
+                          <span className="text-sm leading-relaxed">{item.address}</span>
                         </div>
                       )}
 
                       {/* Description/Notes */}
                       {item.notes && (
-                        <p className="text-muted-foreground text-sm mb-3 line-clamp-2 flex-grow">
+                        <p className="text-muted-foreground text-sm mb-4 line-clamp-3 flex-grow leading-relaxed">
                           {item.notes}
                         </p>
                       )}
 
                       {/* Event Date */}
                       {item.event_date && (
-                        <p className="text-muted-foreground text-sm mb-3">
+                        <p className="text-muted-foreground text-sm mb-4">
                           📅 {new Date(item.event_date).toLocaleDateString()}
                           {item.event_time && ` at ${item.event_time}`}
                         </p>
                       )}
 
                       {/* Maps Link */}
-                      <div className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-sm font-medium transition-colors duration-200">
+                      <Link href={item.google_maps_url || '#'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-primary hover:opacity-75 text-sm font-medium transition-opacity duration-200 mt-auto pt-4 border-t border-border">
                         <span>📍</span>
-                        <span>View on Maps</span>
-                      </div>
+                        <span>Maps</span>
+                      </Link>
                     </div>
                   </div>
                 </Link>

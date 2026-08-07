@@ -199,6 +199,13 @@ export default function ItemDetail() {
     return placeholders[type] || placeholders.venue;
   };
 
+  const typeColors: Record<string, { badge: string; text: string }> = {
+    venue: { badge: 'bg-blue-100 text-blue-700', text: 'Venue' },
+    activity: { badge: 'bg-green-100 text-green-700', text: 'Activity' },
+    event: { badge: 'bg-purple-100 text-purple-700', text: 'Event' },
+    destination: { badge: 'bg-orange-100 text-orange-700', text: 'Destination' },
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -221,15 +228,34 @@ export default function ItemDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-background py-8">
-      <div className="max-w-3xl mx-auto px-6">
-        <Link href="/" className="text-primary hover:opacity-80 mb-6 inline-block">
-          ← Back to items
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="bg-background border-b border-border">
+        <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">📍</span>
+            <h1 className="text-2xl font-heading font-bold text-foreground">Bucket</h1>
+          </div>
+          <nav className="flex gap-8 items-center">
+            <Link href="/" className="text-foreground font-medium hover:opacity-75 transition-opacity">
+              Discover
+            </Link>
+            <Link href="/map" className="text-foreground font-medium hover:opacity-75 transition-opacity">
+              Map
+            </Link>
+          </nav>
+          <div className="w-24"></div>
+        </div>
+      </header>
+
+      <main className="max-w-4xl mx-auto px-6 py-8">
+        <Link href="/" className="text-muted-foreground hover:text-foreground font-medium mb-8 inline-flex items-center gap-2 transition-colors">
+          ← Back to discover
         </Link>
 
-        <div className="bg-card rounded-lg border border-border overflow-hidden">
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
           {/* Image */}
-          <div className="relative h-80 bg-muted overflow-hidden">
+          <div className="relative h-96 bg-muted overflow-hidden">
             <Image
               src={getPlaceholderImage(item.type)}
               alt={item.title}
@@ -356,52 +382,50 @@ export default function ItemDetail() {
                 )}
               </div>
 
-              <div className="space-y-6 mb-6">
+              <div className="space-y-6 mb-8">
+                {/* Type Badge */}
+                <div className="flex gap-2">
+                  <span className={`${typeColors[item.type]?.badge || typeColors.venue.badge} px-3 py-1 rounded-full text-xs font-medium`}>
+                    {typeColors[item.type]?.text || 'Item'}
+                  </span>
+                </div>
+
+                {/* Title */}
+                <h1 className="text-4xl font-heading font-bold text-foreground">
+                  {item.title}
+                </h1>
+
+                {/* Address */}
                 {item.address && (
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Address</h3>
-                    <p className="text-gray-900 dark:text-white">{item.address}</p>
+                  <div className="flex items-start gap-3">
+                    <span className="text-xl mt-1 flex-shrink-0">📍</span>
+                    <p className="text-lg text-muted-foreground">{item.address}</p>
                   </div>
                 )}
 
-                {item.event_date && (
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Event Date</h3>
-                    <p className="text-gray-900 dark:text-white">
-                      {new Date(item.event_date).toLocaleDateString()}
-                      {item.event_time && ` at ${item.event_time}`}
-                    </p>
-                  </div>
-                )}
-
+                {/* Description/Notes */}
                 {item.notes && (
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</h3>
-                    <p className="text-gray-900 dark:text-white whitespace-pre-wrap">{item.notes}</p>
+                  <p className="text-lg text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                    {item.notes}
+                  </p>
+                )}
+
+                {/* Event Date */}
+                {item.event_date && (
+                  <div className="text-muted-foreground">
+                    📅 {new Date(item.event_date).toLocaleDateString()}
+                    {item.event_time && ` at ${item.event_time}`}
                   </div>
                 )}
 
-                {item.google_maps_url && (
-                  <div>
-                    <a
-                      href={item.google_maps_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-700 font-medium"
-                    >
-                      View on Google Maps →
-                    </a>
-                  </div>
-                )}
-
-                <div className="text-xs text-gray-500 dark:text-gray-500">
+                <div className="text-sm text-muted-foreground">
                   Created on {new Date(item.created_at).toLocaleDateString()}
                 </div>
               </div>
             </>
           )}
 
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-6 space-y-4">
+          <div className="border-t border-border pt-8 space-y-4">
             {!item.visited && showDatePicker && (
               <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-md space-y-3">
                 <div>
@@ -439,44 +463,46 @@ export default function ItemDetail() {
               </div>
             )}
 
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
+              {item.google_maps_url && (
+                <a
+                  href={item.google_maps_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-6 py-2 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors"
+                >
+                  Open in Google Maps
+                </a>
+              )}
+
               <button
-                onClick={startEditing}
-                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium"
+                onClick={handleExportCalendar}
+                className="px-6 py-2 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors"
               >
-                Edit
+                📅 Add to Calendar
               </button>
 
               {!item.visited ? (
-                <>
-                  <button
-                    onClick={() => setShowDatePicker(!showDatePicker)}
-                    className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium"
-                  >
-                    {showDatePicker ? 'Hide Date Picker' : 'Mark as Visited'}
-                  </button>
-                </>
+                <button
+                  onClick={() => setShowDatePicker(!showDatePicker)}
+                  className="px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity"
+                >
+                  {showDatePicker ? 'Hide Date Picker' : 'Mark as Visited'}
+                </button>
               ) : (
                 <button
                   onClick={toggleVisited}
                   disabled={updating}
-                  className="flex-1 px-4 py-2 bg-gray-500 hover:bg-gray-600 disabled:bg-gray-400 text-white rounded-md font-medium"
+                  className="px-6 py-2 bg-muted text-foreground rounded-lg font-medium hover:opacity-75 disabled:opacity-50 transition-opacity"
                 >
                   {updating ? 'Updating...' : 'Mark as Unvisited'}
                 </button>
               )}
 
               <button
-                onClick={handleExportCalendar}
-                className="px-4 py-2 border border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md font-medium disabled:opacity-50"
-              >
-                📅 Add to Calendar
-              </button>
-
-              <button
                 onClick={() => setShowDeleteConfirm(true)}
                 disabled={updating}
-                className="px-4 py-2 border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md font-medium disabled:opacity-50"
+                className="ml-auto px-6 py-2 text-destructive font-medium hover:opacity-75 disabled:opacity-50 transition-opacity"
               >
                 Delete
               </button>
