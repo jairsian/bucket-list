@@ -154,7 +154,7 @@ export default function ItemDetail() {
 
       if (!response.ok) throw new Error('Failed to delete item');
 
-      setTimeout(() => router.push('/dashboard'), 100);
+      setTimeout(() => router.push('/'), 100);
     } catch (error) {
       console.error('Error deleting item:', error);
       alert('Failed to delete item');

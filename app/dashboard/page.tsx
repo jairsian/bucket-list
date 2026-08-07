@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Item } from '@/lib/supabase';
+import { Item, supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -15,12 +15,25 @@ export default function Dashboard() {
       const timeout = setTimeout(() => controller.abort(), 5000);
 
       try {
+        // Get auth token
+        const { data } = await supabase.auth.getSession();
+        const token = data.session?.access_token;
+
+        if (!token) {
+          setItems([]);
+          setLoading(false);
+          return;
+        }
+
         const response = await fetch('/api/items', {
           signal: controller.signal,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
         if (!response.ok) throw new Error('Failed to fetch items');
-        const data = await response.json();
-        setItems(data);
+        const itemsData = await response.json();
+        setItems(itemsData);
       } catch (error) {
         // Silently handle auth/fetch errors - show empty state
         setItems([]);
