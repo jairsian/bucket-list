@@ -467,41 +467,49 @@ export default function ItemDetail() {
               )}
             </div>
 
-            <div className="flex flex-wrap gap-3 mt-8">
+            <div className="flex items-center gap-2 mt-8">
               <button
                 onClick={handleExportCalendar}
-                className="inline-flex items-center gap-2 px-4 py-2 border border-border text-foreground rounded font-medium hover:bg-muted transition-colors"
+                className="p-2 border border-border text-foreground rounded hover:bg-muted transition-colors"
+                title="Add to Calendar"
               >
-                <span>📅</span>
-                <span>Add to Calendar</span>
+                <span className="text-lg">📅</span>
               </button>
 
               {!item.visited ? (
                 <button
                   onClick={() => setShowDatePicker(!showDatePicker)}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded font-medium hover:opacity-90 transition-opacity"
+                  className="p-2 bg-primary text-primary-foreground rounded hover:opacity-90 transition-opacity"
+                  title="Mark as Visited"
                 >
-                  <span>✓</span>
-                  <span>{showDatePicker ? 'Hide Date Picker' : 'Mark as Visited'}</span>
+                  <span className="text-lg">✓</span>
                 </button>
               ) : (
                 <button
                   onClick={toggleVisited}
                   disabled={updating}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-muted text-foreground rounded font-medium hover:opacity-75 disabled:opacity-50 transition-opacity"
+                  className="p-2 bg-muted text-foreground rounded hover:opacity-75 disabled:opacity-50 transition-opacity"
+                  title="Mark as Unvisited"
                 >
-                  <span>↩</span>
-                  <span>{updating ? 'Updating...' : 'Mark as Unvisited'}</span>
+                  <span className="text-lg">↩</span>
                 </button>
               )}
 
               <button
+                onClick={() => setIsEditing(!isEditing)}
+                className="p-2 border border-border text-foreground rounded hover:bg-muted transition-colors"
+                title="Edit"
+              >
+                <span className="text-lg">✎</span>
+              </button>
+
+              <button
                 onClick={() => setShowDeleteConfirm(true)}
                 disabled={updating}
-                className="inline-flex items-center gap-2 ml-auto px-4 py-2 text-destructive font-medium hover:opacity-75 disabled:opacity-50 transition-opacity"
+                className="ml-auto p-2 text-destructive hover:opacity-75 disabled:opacity-50 transition-opacity"
+                title="Delete"
               >
-                <span>✕</span>
-                <span>Delete</span>
+                <span className="text-lg">✕</span>
               </button>
             </div>
           </div>
