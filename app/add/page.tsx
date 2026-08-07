@@ -15,11 +15,13 @@ function AddItemContent() {
   const [title, setTitle] = useState('');
   const [type, setType] = useState<'event' | 'venue' | 'activity' | 'destination'>('venue');
   const [address, setAddress] = useState('');
+  const [website, setWebsite] = useState('');
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [googlePlaceId, setGooglePlaceId] = useState('');
   const [notes, setNotes] = useState('');
-  const [rating, setRating] = useState<number | null>(null);
+  const [eventDate, setEventDate] = useState('');
+  const [eventTime, setEventTime] = useState('');
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<PlaceSearchResult[]>([]);
@@ -30,7 +32,7 @@ function AddItemContent() {
     async function init() {
       const { data } = await supabase.auth.getSession();
       if (!data.session) {
-        router.push('/auth/login');
+        setTimeout(() => router.push('/auth/login'), 100);
         return;
       }
 
@@ -102,12 +104,12 @@ function AddItemContent() {
     setTitle(place.name);
     setAddress(place.formattedAddress);
     setGooglePlaceId(place.placeId);
+    if (place.website) {
+      setWebsite(place.website);
+    }
     if (place.geometry?.location) {
       setLatitude(place.geometry.location.lat);
       setLongitude(place.geometry.location.lng);
-    }
-    if (place.rating) {
-      setRating(place.rating);
     }
     setSearchResults([]);
     setSearchQuery('');
@@ -119,6 +121,11 @@ function AddItemContent() {
 
     setSubmitting(true);
     try {
+      let combinedNotes = notes;
+      if (website) {
+        combinedNotes = combinedNotes ? `${combinedNotes}\n\nWebsite: ${website}` : `Website: ${website}`;
+      }
+
       const response = await fetch('/api/items', {
         method: 'POST',
         headers: {
@@ -132,15 +139,16 @@ function AddItemContent() {
           latitude: latitude || null,
           longitude: longitude || null,
           google_place_id: googlePlaceId || null,
-          notes: notes || null,
-          rating: rating || null,
+          notes: combinedNotes || null,
+          event_date: type === 'event' && eventDate ? eventDate : null,
+          event_time: type === 'event' && eventTime ? eventTime : null,
           visited: false,
         }),
       });
 
       if (!response.ok) throw new Error('Failed to create item');
 
-      router.push('/dashboard');
+      setTimeout(() => router.push('/dashboard'), 100);
     } catch (error) {
       console.error('Error creating item:', error);
       alert('Failed to create item');
@@ -163,66 +171,10 @@ function AddItemContent() {
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Add Item to Bucket List</h1>
 
         <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800 rounded-lg shadow p-6 space-y-6">
-          {/* Search for places */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Search Google Maps
-            </label>
-            <form onSubmit={handleSearch} className="flex gap-2 mb-2">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search for a restaurant, event, place..."
-                className="flex-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-              />
-              <button
-                type="submit"
-                disabled={searching}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-md font-medium"
-              >
-                {searching ? 'Searching...' : 'Search'}
-              </button>
-            </form>
-
-            {searchResults.length > 0 && (
-              <div className="border border-gray-300 dark:border-gray-600 rounded-md divide-y dark:divide-gray-600 max-h-64 overflow-y-auto">
-                {searchResults.map((result) => (
-                  <button
-                    key={result.placeId}
-                    type="button"
-                    onClick={() => selectPlace(result)}
-                    className="w-full text-left p-3 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
-                  >
-                    <div className="font-medium text-gray-900 dark:text-white">{result.name}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">{result.formattedAddress}</div>
-                    {result.rating && <div className="text-sm text-yellow-600 dark:text-yellow-400">★ {result.rating}</div>}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Title */}
-          <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Title *
-            </label>
-            <input
-              id="title"
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-              placeholder="e.g., Visit the Eiffel Tower"
-            />
-          </div>
-
           {/* Type */}
           <div>
             <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Type
+              Type *
             </label>
             <select
               id="type"
@@ -237,22 +189,123 @@ function AddItemContent() {
             </select>
           </div>
 
-          {/* Address */}
+          {/* Title */}
           <div>
-            <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Address
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Title *
             </label>
             <input
-              id="address"
+              id="title"
               type="text"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
               className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-              placeholder="Optional address"
+              placeholder={type === 'destination' ? 'e.g., Tokyo' : 'e.g., Il Posto Accanto'}
             />
           </div>
 
-          {/* Notes */}
+          {/* Address with Google Maps Search (all types) */}
+          <div className="space-y-3">
+            <div>
+              <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Location
+              </label>
+              <div className="flex gap-2">
+                <input
+                  id="address"
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                  placeholder={type === 'destination' ? 'e.g., Paris, Tokyo' : 'Search for a place or enter address'}
+                />
+                <button
+                  type="button"
+                  onClick={handleSearch}
+                  disabled={searching}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-md font-medium"
+                >
+                  {searching ? 'Searching...' : 'Search'}
+                </button>
+              </div>
+
+              {searchResults.length > 0 && (
+                <div className="border border-gray-300 dark:border-gray-600 rounded-md divide-y dark:divide-gray-600 max-h-64 overflow-y-auto mt-2">
+                  {searchResults.map((result) => (
+                    <button
+                      key={result.placeId}
+                      type="button"
+                      onClick={() => selectPlace(result)}
+                      className="w-full text-left p-3 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
+                    >
+                      <div className="font-medium text-gray-900 dark:text-white">{result.name}</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">{result.formattedAddress}</div>
+                      {result.rating && <div className="text-sm text-yellow-600 dark:text-yellow-400">★ {result.rating}</div>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {address && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3">
+                <p className="text-sm text-blue-900 dark:text-blue-200">
+                  <strong>Location:</strong> {address}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Website (venue, activity) */}
+          {(type === 'venue' || type === 'activity') && (
+            <div>
+              <label htmlFor="website" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Website
+              </label>
+              <input
+                id="website"
+                type="url"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                placeholder="https://example.com"
+              />
+            </div>
+          )}
+
+          {/* Event Date & Time (event only) */}
+          {type === 'event' && (
+            <>
+              <div>
+                <label htmlFor="eventDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Event Date *
+                </label>
+                <input
+                  id="eventDate"
+                  type="date"
+                  value={eventDate}
+                  onChange={(e) => setEventDate(e.target.value)}
+                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="eventTime" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Event Time
+                </label>
+                <input
+                  id="eventTime"
+                  type="time"
+                  value={eventTime}
+                  onChange={(e) => setEventTime(e.target.value)}
+                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                />
+              </div>
+            </>
+          )}
+
+          {/* Notes (all types) */}
           <div>
             <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Notes
@@ -261,34 +314,10 @@ function AddItemContent() {
               id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              rows={4}
+              rows={3}
               className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
               placeholder="Add any notes or details..."
             />
-          </div>
-
-          {/* Rating */}
-          <div>
-            <label htmlFor="rating" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Rating
-            </label>
-            <select
-              id="rating"
-              value={rating ?? ''}
-              onChange={(e) => setRating(e.target.value ? parseFloat(e.target.value) : null)}
-              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-            >
-              <option value="">No rating</option>
-              <option value="1">★ 1</option>
-              <option value="1.5">★ 1.5</option>
-              <option value="2">★ 2</option>
-              <option value="2.5">★ 2.5</option>
-              <option value="3">★ 3</option>
-              <option value="3.5">★ 3.5</option>
-              <option value="4">★ 4</option>
-              <option value="4.5">★ 4.5</option>
-              <option value="5">★ 5</option>
-            </select>
           </div>
 
           {/* Buttons */}

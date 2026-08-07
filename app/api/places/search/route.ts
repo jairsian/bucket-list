@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
       headers: {
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY,
+        'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.businessStatus,places.name,places.types,places.location,places.photos,places.websiteUri',
       },
       body: JSON.stringify({
         textQuery: query,
@@ -52,6 +53,7 @@ export async function POST(request: NextRequest) {
       businessStatus: place.businessStatus,
       placeId: place.name?.split('/')[1] || '',
       types: place.types,
+      website: place.websiteUri || undefined,
       geometry: {
         location: {
           lat: place.location?.latitude || 0,

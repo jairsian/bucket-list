@@ -21,6 +21,8 @@ export type Item = {
   notes: string | null;
   image_url: string | null;
   google_maps_url: string | null;
+  event_date: string | null;
+  event_time: string | null;
   created_at: string;
   updated_at: string;
 };

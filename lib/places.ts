@@ -8,6 +8,7 @@ export interface PlaceSearchResult {
   businessStatus?: string;
   placeId: string;
   types?: string[];
+  website?: string;
   geometry?: {
     location: {
       lat: number;

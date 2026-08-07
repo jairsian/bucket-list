@@ -62,23 +62,28 @@ export async function POST(request: NextRequest) {
       .insert({
         user_id: data.user.id,
         title: body.title,
-        description: body.description,
+        description: body.description || null,
         type: body.type,
         latitude: body.latitude,
         longitude: body.longitude,
         address: body.address,
         google_place_id: body.google_place_id,
         visited: body.visited || false,
-        visit_date: body.visit_date,
+        visit_date: body.visit_date || null,
         rating: body.rating,
         notes: body.notes,
-        image_url: body.image_url,
-        google_maps_url: body.google_maps_url,
+        image_url: body.image_url || null,
+        google_maps_url: body.google_maps_url || null,
+        event_date: body.event_date || null,
+        event_time: body.event_time || null,
       })
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase insert error:', error);
+      throw error;
+    }
 
     return NextResponse.json(item, { status: 201 });
   } catch (error) {

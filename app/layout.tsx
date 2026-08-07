@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ServiceWorkerRegister } from "./service-worker-register";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,7 +47,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="manifest" href="/manifest.json" />
         <link rel="shortcut icon" href="/favicon.ico" />
       </head>
-      <body className="min-h-full flex flex-col bg-white dark:bg-slate-950">{children}</body>
+      <body className="min-h-full flex flex-col bg-white dark:bg-slate-950">
+        {/* <ServiceWorkerRegister /> */}
+        {children}
+      </body>
     </html>
   );
 }

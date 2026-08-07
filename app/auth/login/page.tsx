@@ -25,7 +25,7 @@ export default function LoginPage() {
 
       if (signInError) throw signInError;
 
-      router.push('/dashboard');
+      setTimeout(() => router.push('/dashboard'), 100);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
