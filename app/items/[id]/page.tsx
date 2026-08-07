@@ -443,21 +443,21 @@ export default function ItemDetail() {
             )}
 
             <div className="flex flex-wrap gap-6 items-center">
-              {item.google_maps_url && (
+              {(item.google_maps_url || item.address) && (
                 <a
-                  href={item.google_maps_url}
+                  href={item.google_maps_url || `https://www.google.com/maps/search/${encodeURIComponent(item.address || item.title)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-border text-foreground rounded font-medium hover:bg-muted transition-colors"
                 >
                   <span>↗</span>
                   <span>Open in Google Maps</span>
                 </a>
               )}
 
-              {item.google_maps_url && (
+              {(item.google_maps_url || item.address) && (
                 <a
-                  href={item.google_maps_url}
+                  href={item.google_maps_url || `https://www.google.com/maps/search/${encodeURIComponent(item.address || item.title)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-foreground font-medium hover:opacity-75 transition-opacity"
