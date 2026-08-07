@@ -496,7 +496,13 @@ export default function ItemDetail() {
               )}
 
               <button
-                onClick={() => setIsEditing(!isEditing)}
+                onClick={() => {
+                  if (!isEditing) {
+                    startEditing();
+                  } else {
+                    setIsEditing(false);
+                  }
+                }}
                 className="text-foreground hover:opacity-75 transition-opacity"
                 title="Edit"
               >
