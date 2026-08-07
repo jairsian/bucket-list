@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { Item } from '@/lib/supabase';
 import Link from 'next/link';
 import Image from 'next/image';
+import { searchPlaces, getPlaceDetails, PlaceSearchResult } from '@/lib/places';
 
 export default function ItemDetail() {
   const router = useRouter();
@@ -20,8 +21,12 @@ export default function ItemDetail() {
   const [visitDate, setVisitDate] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<PlaceSearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
   const [editData, setEditData] = useState({
     title: '',
+    type: 'venue' as 'event' | 'venue' | 'activity' | 'destination',
     address: '',
     notes: '',
     website_url: '',
@@ -98,6 +103,7 @@ export default function ItemDetail() {
     if (!item) return;
     setEditData({
       title: item.title,
+      type: item.type,
       address: item.address || '',
       notes: item.notes || '',
       website_url: item.website_url || '',
@@ -121,6 +127,7 @@ export default function ItemDetail() {
         body: JSON.stringify({
           id: item.id,
           title: editData.title,
+          type: editData.type,
           address: editData.address || null,
           notes: editData.notes || null,
           website_url: editData.website_url || null,
@@ -190,6 +197,33 @@ export default function ItemDetail() {
       console.error('Error exporting calendar:', error);
       alert('Failed to export calendar');
     }
+  }
+
+  async function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+
+    setSearching(true);
+    try {
+      const results = await searchPlaces(searchQuery);
+      setSearchResults(results);
+    } catch (error) {
+      console.error('Search failed:', error);
+      alert('Failed to search places');
+    } finally {
+      setSearching(false);
+    }
+  }
+
+  function selectPlace(place: PlaceSearchResult) {
+    setEditData({
+      ...editData,
+      title: place.name,
+      address: place.formattedAddress,
+      website_url: place.website || editData.website_url,
+    });
+    setSearchResults([]);
+    setSearchQuery('');
   }
 
   const getPlaceholderImage = (type: string) => {
@@ -275,6 +309,23 @@ export default function ItemDetail() {
               <h2 className="text-2xl font-heading font-bold text-foreground mb-6">Edit Item</h2>
               <div className="space-y-6">
                 <div>
+                  <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Type *
+                  </label>
+                  <select
+                    id="type"
+                    value={editData.type}
+                    onChange={(e) => setEditData({ ...editData, type: e.target.value as any })}
+                    className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                  >
+                    <option value="venue">Venue</option>
+                    <option value="event">Event</option>
+                    <option value="activity">Activity</option>
+                    <option value="destination">Destination</option>
+                  </select>
+                </div>
+
+                <div>
                   <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Title *
                   </label>
@@ -287,22 +338,60 @@ export default function ItemDetail() {
                   />
                 </div>
 
-                {(item.type === 'venue' || item.type === 'activity' || item.type === 'event') && (
-                  <div>
-                    <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Address
-                    </label>
-                    <input
-                      id="address"
-                      type="text"
-                      value={editData.address}
-                      onChange={(e) => setEditData({ ...editData, address: e.target.value })}
-                      className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-                    />
+                {(editData.type === 'venue' || editData.type === 'activity' || editData.type === 'event') && (
+                  <div className="space-y-3">
+                    <div>
+                      <label htmlFor="address-search" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Location
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          id="address-search"
+                          type="text"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="flex-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                          placeholder="Search for a place or enter address"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleSearch}
+                          disabled={searching}
+                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-md font-medium"
+                        >
+                          {searching ? 'Searching...' : 'Search'}
+                        </button>
+                      </div>
+
+                      {searchResults.length > 0 && (
+                        <div className="border border-gray-300 dark:border-gray-600 rounded-md divide-y dark:divide-gray-600 max-h-64 overflow-y-auto mt-2">
+                          {searchResults.map((result) => (
+                            <button
+                              key={result.placeId}
+                              type="button"
+                              onClick={() => selectPlace(result)}
+                              className="w-full text-left p-3 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
+                            >
+                              <div className="font-medium text-gray-900 dark:text-white">{result.name}</div>
+                              <div className="text-sm text-gray-600 dark:text-gray-400">{result.formattedAddress}</div>
+                              {result.rating && <div className="text-sm text-yellow-600 dark:text-yellow-400">★ {result.rating}</div>}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {editData.address && (
+                      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3">
+                        <p className="text-sm text-blue-900 dark:text-blue-200">
+                          <strong>Location:</strong> {editData.address}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {(item.type === 'venue' || item.type === 'activity') && (
+                {(editData.type === 'venue' || editData.type === 'activity') && (
                   <div>
                     <label htmlFor="website_url" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Website
@@ -318,7 +407,7 @@ export default function ItemDetail() {
                   </div>
                 )}
 
-                {item.type === 'event' && (
+                {editData.type === 'event' && (
                   <>
                     <div>
                       <label htmlFor="event_date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
