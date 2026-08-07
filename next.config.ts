@@ -29,11 +29,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "**.gstatic.com",
+        hostname: "*.gstatic.com",
       },
       {
         protocol: "https",
-        hostname: "**.googleapis.com",
+        hostname: "*.googleapis.com",
       },
     ],
   },
