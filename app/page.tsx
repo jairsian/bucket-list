@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { Item, supabase } from '@/lib/supabase';
 import Link from 'next/link';
-import Image from 'next/image';
 
 type ItemTagMap = {
   [itemId: string]: any[];
@@ -117,13 +116,15 @@ export default function Home() {
   });
 
   const getPlaceholderImage = (type: string) => {
-    const placeholders: Record<string, string> = {
-      venue: 'https://images.unsplash.com/photo-1517457373614-b7152f800fd1?w=600&h=400&fit=crop',
-      activity: 'https://images.unsplash.com/photo-1527004545514-d3dcc0e43a92?w=600&h=400&fit=crop',
-      event: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=600&h=400&fit=crop',
-      destination: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=600&h=400&fit=crop',
+    const colors: Record<string, string> = {
+      venue: '3b82f6',
+      activity: '10b981',
+      event: 'a855f7',
+      destination: 'f97316',
     };
-    return placeholders[type] || placeholders.venue;
+    const color = colors[type] || colors.venue;
+    const emoji = { venue: '🍽️', activity: '🎯', event: '🎭', destination: '✈️' }[type] || '📍';
+    return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect fill='%23${color}' width='600' height='400'/%3E%3Ctext x='50%25' y='50%25' font-size='80' dominant-baseline='middle' text-anchor='middle' font-family='system-ui' fill='white' font-weight='bold'%3E${emoji}%3C/text%3E%3C/svg%3E`;
   };
 
   const typeColors: Record<string, { badge: string; text: string }> = {
@@ -238,12 +239,11 @@ export default function Home() {
                 <Link key={item.id} href={`/items/${item.id}`} className="group">
                   <div className="bg-card rounded-xl overflow-hidden border border-border hover:border-border/80 transition-all duration-300 h-full flex flex-col">
                     {/* Image */}
-                    <div className="relative h-72 bg-muted overflow-hidden">
-                      <Image
+                    <div className="h-72 bg-muted overflow-hidden">
+                      <img
                         src={getPlaceholderImage(item.type)}
                         alt={item.title}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     </div>
 
