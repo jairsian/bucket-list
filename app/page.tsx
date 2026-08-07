@@ -20,10 +20,67 @@ export default function Home() {
         });
         if (!response.ok) throw new Error('Failed to fetch items');
         const data = await response.json();
-        setItems(data);
+        // Show demo items if no real items
+        if (!data || data.length === 0) {
+          const demoItems: Item[] = [
+            {
+              id: '1',
+              title: 'Sunset at Griffith Observatory',
+              type: 'activity',
+              address: 'Griffith Observatory, Los Angeles, CA',
+              notes: 'Watch the sunset over Los Angeles from the Griffith Observatory.',
+              visited: false,
+              latitude: 34.1184,
+              longitude: -118.3034,
+              event_date: null,
+              event_time: null,
+            },
+            {
+              id: '2',
+              title: 'The Dead Rabbit',
+              type: 'venue',
+              address: '30 Water St, New York, NY',
+              notes: 'Award-winning cocktail bar in Lower Manhattan with Irish pub roots.',
+              visited: false,
+              latitude: 40.7033,
+              longitude: -74.0029,
+              event_date: null,
+              event_time: null,
+            },
+          ];
+          setItems(demoItems);
+        } else {
+          setItems(data);
+        }
       } catch (error) {
-        // Silently handle auth/fetch errors - show empty state
-        setItems([]);
+        // Show demo items on error
+        const demoItems: Item[] = [
+          {
+            id: '1',
+            title: 'Sunset at Griffith Observatory',
+            type: 'activity',
+            address: 'Griffith Observatory, Los Angeles, CA',
+            notes: 'Watch the sunset over Los Angeles from the Griffith Observatory.',
+            visited: false,
+            latitude: 34.1184,
+            longitude: -118.3034,
+            event_date: null,
+            event_time: null,
+          },
+          {
+            id: '2',
+            title: 'The Dead Rabbit',
+            type: 'venue',
+            address: '30 Water St, New York, NY',
+            notes: 'Award-winning cocktail bar in Lower Manhattan with Irish pub roots.',
+            visited: false,
+            latitude: 40.7033,
+            longitude: -74.0029,
+            event_date: null,
+            event_time: null,
+          },
+        ];
+        setItems(demoItems);
       } finally {
         clearTimeout(timeout);
         setLoading(false);
