@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { searchPlaces, getPlaceDetails, PlaceSearchResult } from '@/lib/places';
 import { extractPlaceIdFromMapUrl } from '@/lib/deeplink';
+import { TagSelector } from '@/components/TagSelector';
 
 function AddItemContent() {
   const router = useRouter();
@@ -27,6 +28,7 @@ function AddItemContent() {
   const [searchResults, setSearchResults] = useState<PlaceSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
 
   useEffect(() => {
     async function init() {
@@ -140,6 +142,25 @@ function AddItemContent() {
       });
 
       if (!response.ok) throw new Error('Failed to create item');
+
+      const item = await response.json();
+
+      // Save tags if any are selected
+      if (selectedTagIds.length > 0) {
+        for (const tagId of selectedTagIds) {
+          await fetch('/api/item-tags', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({
+              itemId: item.id,
+              tagId,
+            }),
+          });
+        }
+      }
 
       setTimeout(() => router.push('/dashboard'), 100);
     } catch (error) {
@@ -310,6 +331,15 @@ function AddItemContent() {
               rows={3}
               className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
               placeholder="Add any notes or details..."
+            />
+          </div>
+
+          {/* Tags */}
+          <div className="p-4 bg-gray-50 dark:bg-slate-800 rounded-md">
+            <TagSelector
+              selectedTagIds={selectedTagIds}
+              onTagsChange={setSelectedTagIds}
+              sessionToken={session?.access_token}
             />
           </div>
 

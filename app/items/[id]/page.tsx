@@ -280,6 +280,9 @@ export default function ItemDetail() {
             <Link href="/map" className="text-foreground font-medium hover:opacity-75 transition-opacity">
               Map
             </Link>
+            <Link href="/tags" className="text-foreground font-medium hover:opacity-75 transition-opacity">
+              Tags
+            </Link>
           </nav>
           <div className="w-24"></div>
         </div>

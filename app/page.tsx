@@ -87,6 +87,9 @@ export default function Home() {
             <Link href="/map" className="text-foreground font-medium hover:opacity-75 transition-opacity">
               Map
             </Link>
+            <Link href="/tags" className="text-foreground font-medium hover:opacity-75 transition-opacity">
+              Tags
+            </Link>
           </nav>
           <Link
             href="/add"

@@ -5,15 +5,16 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 
-interface Tag {
+type Tag = {
   id: number;
+  user_id: string;
   name: string;
-  color?: string;
-}
+  color: string | null;
+};
 
 const TAG_COLORS = [
   '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
-  '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B88B', '#A9DFBF',
+  '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B88B', '#A3E4D7',
 ];
 
 export default function TagsPage() {
@@ -22,8 +23,13 @@ export default function TagsPage() {
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<any>(null);
   const [newTagName, setNewTagName] = useState('');
-  const [selectedColor, setSelectedColor] = useState(TAG_COLORS[0]);
+  const [newTagColor, setNewTagColor] = useState(TAG_COLORS[0]);
   const [creating, setCreating] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editColor, setEditColor] = useState('');
+  const [updating, setUpdating] = useState(false);
+  const [deleting, setDeleting] = useState<number | null>(null);
 
   useEffect(() => {
     async function init() {
@@ -50,7 +56,7 @@ export default function TagsPage() {
 
       if (!response.ok) throw new Error('Failed to fetch tags');
       const data = await response.json();
-      setTags(data);
+      setTags(data || []);
     } catch (error) {
       console.error('Error fetching tags:', error);
     } finally {
@@ -58,8 +64,7 @@ export default function TagsPage() {
     }
   }
 
-  async function handleCreateTag(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleCreateTag() {
     if (!newTagName.trim() || !session) return;
 
     setCreating(true);
@@ -72,16 +77,16 @@ export default function TagsPage() {
         },
         body: JSON.stringify({
           name: newTagName.trim(),
-          color: selectedColor,
+          color: newTagColor,
         }),
       });
 
       if (!response.ok) throw new Error('Failed to create tag');
-      const newTag = await response.json();
 
-      setTags([...tags, newTag]);
+      const newTag = await response.json();
+      setTags([...tags, newTag].sort((a, b) => a.name.localeCompare(b.name)));
       setNewTagName('');
-      setSelectedColor(TAG_COLORS[0]);
+      setNewTagColor(TAG_COLORS[0]);
     } catch (error) {
       console.error('Error creating tag:', error);
       alert('Failed to create tag');
@@ -90,90 +95,234 @@ export default function TagsPage() {
     }
   }
 
+  async function handleUpdateTag() {
+    if (!editName.trim() || editingId === null || !session) return;
+
+    setUpdating(true);
+    try {
+      const response = await fetch('/api/tags', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          id: editingId,
+          name: editName.trim(),
+          color: editColor,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update tag');
+
+      const updated = await response.json();
+      setTags(tags.map(t => t.id === editingId ? updated : t).sort((a, b) => a.name.localeCompare(b.name)));
+      setEditingId(null);
+      setEditName('');
+      setEditColor('');
+    } catch (error) {
+      console.error('Error updating tag:', error);
+      alert('Failed to update tag');
+    } finally {
+      setUpdating(false);
+    }
+  }
+
+  async function handleDeleteTag(id: number) {
+    if (!session) return;
+
+    setDeleting(id);
+    try {
+      const response = await fetch('/api/tags', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      if (!response.ok) throw new Error('Failed to delete tag');
+
+      setTags(tags.filter(t => t.id !== id));
+    } catch (error) {
+      console.error('Error deleting tag:', error);
+      alert('Failed to delete tag');
+    } finally {
+      setDeleting(null);
+    }
+  }
+
+  function startEdit(tag: Tag) {
+    setEditingId(tag.id);
+    setEditName(tag.name);
+    setEditColor(tag.color || TAG_COLORS[0]);
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+        <p className="text-muted-foreground">Loading...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 py-8">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Link href="/dashboard" className="text-blue-600 hover:text-blue-700 dark:text-blue-400 mb-6 inline-block">
-          ← Back to Dashboard
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="bg-background border-b border-border">
+        <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">📍</span>
+            <h1 className="text-2xl font-heading font-bold text-foreground">Bucket</h1>
+          </div>
+          <nav className="flex gap-8 items-center">
+            <Link href="/" className="text-foreground font-medium hover:opacity-75 transition-opacity">
+              Discover
+            </Link>
+            <Link href="/map" className="text-foreground font-medium hover:opacity-75 transition-opacity">
+              Map
+            </Link>
+          </nav>
+          <div className="w-24"></div>
+        </div>
+      </header>
+
+      <main className="max-w-4xl mx-auto px-6 py-8">
+        <Link href="/" className="text-muted-foreground hover:text-foreground font-medium mb-8 inline-flex items-center gap-2 transition-colors">
+          ← Back to discover
         </Link>
 
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Manage Tags</h1>
+        <div className="space-y-8">
+          {/* Create Tag */}
+          <div className="bg-card rounded-xl border border-border p-6">
+            <h2 className="text-2xl font-heading font-bold text-foreground mb-6">Create Tag</h2>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="tagName" className="block text-sm font-medium text-foreground mb-2">
+                  Tag Name *
+                </label>
+                <input
+                  id="tagName"
+                  type="text"
+                  value={newTagName}
+                  onChange={(e) => setNewTagName(e.target.value)}
+                  placeholder="e.g., Favorite, Expensive, Quiet"
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
 
-        {/* Create Tag Form */}
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Create New Tag</h2>
-          <form onSubmit={handleCreateTag} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Tag Name
-              </label>
-              <input
-                type="text"
-                value={newTagName}
-                onChange={(e) => setNewTagName(e.target.value)}
-                placeholder="e.g., NYC, Food, Adventure..."
-                className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-              />
+              <div>
+                <label htmlFor="tagColor" className="block text-sm font-medium text-foreground mb-2">
+                  Color
+                </label>
+                <div className="flex gap-2 flex-wrap">
+                  {TAG_COLORS.map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => setNewTagColor(color)}
+                      className={`w-10 h-10 rounded-full border-2 transition-all ${
+                        newTagColor === color ? 'border-foreground' : 'border-transparent'
+                      }`}
+                      style={{ backgroundColor: color }}
+                      title={color}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <button
+                onClick={handleCreateTag}
+                disabled={creating || !newTagName.trim()}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
+              >
+                {creating ? 'Creating...' : 'Create Tag'}
+              </button>
             </div>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Color
-              </label>
-              <div className="flex gap-2 flex-wrap">
-                {TAG_COLORS.map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    onClick={() => setSelectedColor(color)}
-                    className={`w-8 h-8 rounded-full border-2 transition ${
-                      selectedColor === color ? 'border-gray-900 dark:border-white' : 'border-gray-300'
-                    }`}
-                    style={{ backgroundColor: color }}
-                  />
+          {/* Tags List */}
+          <div className="bg-card rounded-xl border border-border p-6">
+            <h2 className="text-2xl font-heading font-bold text-foreground mb-6">
+              Tags ({tags.length})
+            </h2>
+
+            {tags.length === 0 ? (
+              <p className="text-muted-foreground">No tags yet. Create one to get started!</p>
+            ) : (
+              <div className="space-y-3">
+                {tags.map((tag) => (
+                  <div key={tag.id} className="flex items-center gap-4 p-4 border border-border rounded-lg">
+                    {editingId === tag.id ? (
+                      <>
+                        <div className="flex-1 space-y-3">
+                          <input
+                            type="text"
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            className="w-full rounded-md border border-border bg-background px-3 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                          />
+                          <div className="flex gap-2 flex-wrap">
+                            {TAG_COLORS.map((color) => (
+                              <button
+                                key={color}
+                                onClick={() => setEditColor(color)}
+                                className={`w-8 h-8 rounded-full border-2 transition-all ${
+                                  editColor === color ? 'border-foreground' : 'border-transparent'
+                                }`}
+                                style={{ backgroundColor: color }}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleUpdateTag}
+                            disabled={updating || !editName.trim()}
+                            className="px-3 py-1 bg-primary text-primary-foreground rounded text-sm font-medium hover:opacity-90 disabled:opacity-50"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => setEditingId(null)}
+                            disabled={updating}
+                            className="px-3 py-1 border border-border text-foreground rounded text-sm font-medium hover:bg-muted disabled:opacity-50"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div
+                          className="w-6 h-6 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: tag.color || TAG_COLORS[0] }}
+                        />
+                        <span className="flex-1 font-medium text-foreground">{tag.name}</span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => startEdit(tag)}
+                            className="px-3 py-1 border border-border text-foreground rounded text-sm font-medium hover:bg-muted transition-colors"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteTag(tag.id)}
+                            disabled={deleting === tag.id}
+                            className="px-3 py-1 border border-border text-destructive rounded text-sm font-medium hover:bg-red-50 dark:hover:bg-red-950/20 disabled:opacity-50 transition-colors"
+                          >
+                            {deleting === tag.id ? 'Deleting...' : 'Delete'}
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 ))}
               </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={creating || !newTagName.trim()}
-              className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-md font-medium"
-            >
-              {creating ? 'Creating...' : 'Create Tag'}
-            </button>
-          </form>
+            )}
+          </div>
         </div>
-
-        {/* Tags List */}
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Your Tags ({tags.length})</h2>
-
-          {tags.length === 0 ? (
-            <p className="text-gray-600 dark:text-gray-400">No tags yet. Create your first tag above!</p>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {tags.map((tag) => (
-                <span
-                  key={tag.id}
-                  className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-white text-sm font-medium"
-                  style={{ backgroundColor: tag.color || '#999' }}
-                >
-                  {tag.name}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      </main>
     </div>
   );
 }
