@@ -267,7 +267,7 @@ export default function ItemDetail() {
 
           {/* Content */}
           <div className="p-8">
-          {isEditing ? (
+            {isEditing ? (
             <>
               <h2 className="text-2xl font-heading font-bold text-foreground mb-6">Edit Item</h2>
               <div className="space-y-6">
@@ -423,9 +423,9 @@ export default function ItemDetail() {
                 </div>
               </div>
             </>
-          )}
+            )}
 
-          <div className="border-t border-border pt-8 space-y-4">
+            <div className="border-t border-border pt-8 space-y-4">
             {!item.visited && showDatePicker && (
               <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-md space-y-3">
                 <div>
@@ -509,8 +509,8 @@ export default function ItemDetail() {
             </div>
           </div>
 
-          {showDeleteConfirm && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            {showDeleteConfirm && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
               <div className="bg-card rounded-lg border border-border shadow-lg p-6 max-w-sm">
                 <h3 className="text-lg font-bold text-foreground mb-2">Delete Item?</h3>
                 <p className="text-muted-foreground mb-6">
@@ -534,10 +534,10 @@ export default function ItemDetail() {
                 </div>
               </div>
             </div>
-          )}
+            )}
+            </div>
           </div>
-        </div>
-      </div>
+      </main>
     </div>
   );
 }
