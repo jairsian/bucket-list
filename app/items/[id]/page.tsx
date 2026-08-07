@@ -7,6 +7,7 @@ import { Item } from '@/lib/supabase';
 import Link from 'next/link';
 import Image from 'next/image';
 import { searchPlaces, getPlaceDetails, PlaceSearchResult } from '@/lib/places';
+import { TagSelector } from '@/components/TagSelector';
 
 export default function ItemDetail() {
   const router = useRouter();
@@ -24,6 +25,7 @@ export default function ItemDetail() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<PlaceSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
+  const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
   const [editData, setEditData] = useState({
     title: '',
     type: 'venue' as 'event' | 'venue' | 'activity' | 'destination',
@@ -99,8 +101,9 @@ export default function ItemDetail() {
     }
   }
 
-  function startEditing() {
-    if (!item) return;
+  async function startEditing() {
+    if (!item || !session) return;
+
     setEditData({
       title: item.title,
       type: item.type,
@@ -110,6 +113,24 @@ export default function ItemDetail() {
       event_date: item.event_date || '',
       event_time: item.event_time || '',
     });
+
+    // Fetch existing tags for this item
+    try {
+      const response = await fetch(`/api/item-tags?itemId=${item.id}`, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (response.ok) {
+        const itemTags = await response.json();
+        const tagIds = itemTags.map((it: any) => it.tag_id);
+        setSelectedTagIds(tagIds);
+      }
+    } catch (error) {
+      console.error('Error fetching tags:', error);
+    }
+
     setIsEditing(true);
   }
 
@@ -139,6 +160,51 @@ export default function ItemDetail() {
       if (!response.ok) throw new Error('Failed to save item');
 
       const updated = await response.json();
+
+      // Fetch current tags for this item
+      const tagsResponse = await fetch(`/api/item-tags?itemId=${item.id}`, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      const currentItemTags = tagsResponse.ok ? await tagsResponse.json() : [];
+      const currentTagIds = currentItemTags.map((it: any) => it.tag_id);
+
+      // Remove tags that are no longer selected
+      for (const tagId of currentTagIds) {
+        if (!selectedTagIds.includes(tagId)) {
+          await fetch('/api/item-tags', {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({
+              itemId: item.id,
+              tagId,
+            }),
+          });
+        }
+      }
+
+      // Add newly selected tags
+      for (const tagId of selectedTagIds) {
+        if (!currentTagIds.includes(tagId)) {
+          await fetch('/api/item-tags', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({
+              itemId: item.id,
+              tagId,
+            }),
+          });
+        }
+      }
+
       setItem(updated);
       setIsEditing(false);
     } catch (error) {
@@ -449,6 +515,14 @@ export default function ItemDetail() {
                     onChange={(e) => setEditData({ ...editData, notes: e.target.value })}
                     rows={4}
                     className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                  />
+                </div>
+
+                <div className="p-4 bg-gray-50 dark:bg-slate-700 rounded-md">
+                  <TagSelector
+                    selectedTagIds={selectedTagIds}
+                    onTagsChange={setSelectedTagIds}
+                    sessionToken={session?.access_token}
                   />
                 </div>
 
