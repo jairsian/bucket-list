@@ -385,7 +385,7 @@ export default function ItemDetail() {
                 {/* Description/Notes */}
                 {item.notes && (
                   <p className="text-lg text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                    {item.notes}
+                    {item.notes.split('\n').filter(line => !line.startsWith('Website:')).join('\n').trim()}
                   </p>
                 )}
 
