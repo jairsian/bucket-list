@@ -26,6 +26,7 @@ export default function ItemDetail() {
   const [searchResults, setSearchResults] = useState<PlaceSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
+  const [itemTags, setItemTags] = useState<any[]>([]);
   const [editData, setEditData] = useState({
     title: '',
     type: 'venue' as 'event' | 'venue' | 'activity' | 'destination',
@@ -61,6 +62,22 @@ export default function ItemDetail() {
 
       if (item) {
         setItem(item);
+
+        // Fetch tags for this item
+        try {
+          const tagsResponse = await fetch(`/api/item-tags?itemId=${item.id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (tagsResponse.ok) {
+            const tags = await tagsResponse.json();
+            setItemTags(tags);
+          }
+        } catch (error) {
+          console.error('Error fetching item tags:', error);
+        }
       }
     } catch (error) {
       console.error('Error fetching item:', error);
@@ -579,6 +596,21 @@ export default function ItemDetail() {
                   <div className="text-muted-foreground">
                     📅 {new Date(item.event_date).toLocaleDateString()}
                     {item.event_time && ` at ${item.event_time}`}
+                  </div>
+                )}
+
+                {/* Tags */}
+                {itemTags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {itemTags.map((itemTag: any) => (
+                      <span
+                        key={itemTag.tag_id}
+                        className="px-3 py-1 rounded-full text-xs font-medium text-white"
+                        style={{ backgroundColor: itemTag.tags?.color || '#ccc' }}
+                      >
+                        {itemTag.tags?.name}
+                      </span>
+                    ))}
                   </div>
                 )}
 

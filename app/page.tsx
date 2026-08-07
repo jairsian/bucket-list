@@ -5,9 +5,23 @@ import { Item, supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import Image from 'next/image';
 
+type ItemTagMap = {
+  [itemId: string]: any[];
+};
+
+type Tag = {
+  id: number;
+  name: string;
+  color: string | null;
+};
+
 export default function Home() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
+  const [itemTags, setItemTags] = useState<ItemTagMap>({});
+  const [allTags, setAllTags] = useState<Tag[]>([]);
+  const [selectedTagFilter, setSelectedTagFilter] = useState<number | null>(null);
+  const [session, setSession] = useState<any>(null);
 
   useEffect(() => {
     async function fetchItems() {
@@ -18,6 +32,7 @@ export default function Home() {
         // Get auth token
         const { data } = await supabase.auth.getSession();
         const token = data.session?.access_token;
+        setSession(data.session);
 
         if (!token) {
           setItems([]);
@@ -34,6 +49,31 @@ export default function Home() {
         if (!response.ok) throw new Error('Failed to fetch items');
         const itemsData = await response.json();
         setItems(itemsData || []);
+
+        // Fetch all tags
+        const tagsResponse = await fetch('/api/tags', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (tagsResponse.ok) {
+          const tags = await tagsResponse.json();
+          setAllTags(tags || []);
+        }
+
+        // Fetch tags for each item
+        const tagMap: ItemTagMap = {};
+        for (const item of itemsData || []) {
+          const itemTagsResponse = await fetch(`/api/item-tags?itemId=${item.id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (itemTagsResponse.ok) {
+            tagMap[item.id] = await itemTagsResponse.json();
+          }
+        }
+        setItemTags(tagMap);
       } catch (error) {
         console.error('Error fetching items:', error);
         setItems([]);
@@ -53,6 +93,14 @@ export default function Home() {
       </div>
     );
   }
+
+  // Filter items by selected tag
+  const filteredItems = selectedTagFilter === null
+    ? items
+    : items.filter(item => {
+        const tags = itemTags[item.id] || [];
+        return tags.some((tag: any) => tag.tag_id === selectedTagFilter);
+      });
 
   const getPlaceholderImage = (type: string) => {
     const placeholders: Record<string, string> = {
@@ -115,8 +163,47 @@ export default function Home() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {items.map((item) => {
+          <>
+            {/* Tag Filter */}
+            {allTags.length > 0 && (
+              <div className="mb-8 space-y-3">
+                <p className="text-sm font-medium text-muted-foreground">Filter by tag:</p>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setSelectedTagFilter(null)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                      selectedTagFilter === null
+                        ? 'bg-primary text-primary-foreground'
+                        : 'border border-border text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    All
+                  </button>
+                  {allTags.map((tag) => (
+                    <button
+                      key={tag.id}
+                      onClick={() => setSelectedTagFilter(tag.id)}
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                        selectedTagFilter === tag.id
+                          ? 'ring-2 ring-offset-2 ring-foreground'
+                          : 'opacity-75 hover:opacity-100'
+                      }`}
+                      style={{ backgroundColor: tag.color || '#ccc', color: 'white' }}
+                    >
+                      {tag.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {filteredItems.length === 0 ? (
+              <div className="text-center py-16">
+                <p className="text-muted-foreground">No items match the selected tag.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {filteredItems.map((item) => {
               const itemTypeColors = typeColors[item.type] || typeColors.venue;
               const itemTypeText = itemTypeColors.text;
 
@@ -175,6 +262,21 @@ export default function Home() {
                         </p>
                       )}
 
+                      {/* Tags */}
+                      {(itemTags[item.id] || []).length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {(itemTags[item.id] || []).map((itemTag: any) => (
+                            <span
+                              key={itemTag.tag_id}
+                              className="px-2 py-1 rounded text-xs font-medium text-white"
+                              style={{ backgroundColor: itemTag.tags?.color || '#ccc' }}
+                            >
+                              {itemTag.tags?.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
                       {/* Maps Link */}
                       {item.google_maps_url && (
                         <a href={item.google_maps_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-2 text-primary hover:opacity-75 text-sm font-medium transition-opacity duration-200 mt-auto pt-4 border-t border-border">
@@ -186,8 +288,10 @@ export default function Home() {
                   </div>
                 </Link>
               );
-            })}
-          </div>
+                })}
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>
