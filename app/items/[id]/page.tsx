@@ -443,9 +443,9 @@ export default function ItemDetail() {
             )}
 
             <div className="flex flex-wrap gap-6 items-center">
-              {(item.google_maps_url || item.address) && (
+              {item.google_maps_url && (
                 <a
-                  href={item.google_maps_url || `https://www.google.com/maps/search/${encodeURIComponent(item.address || item.title)}`}
+                  href={item.google_maps_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-4 py-2 border border-border text-foreground rounded font-medium hover:bg-muted transition-colors"
