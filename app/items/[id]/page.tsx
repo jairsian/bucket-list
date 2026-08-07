@@ -455,9 +455,9 @@ export default function ItemDetail() {
                 </a>
               )}
 
-              {(item.google_maps_url || item.address) && (
+              {item.notes && item.notes.includes('Website:') && (
                 <a
-                  href={item.google_maps_url || `https://www.google.com/maps/search/${encodeURIComponent(item.address || item.title)}`}
+                  href={item.notes.split('\n').find(line => line.startsWith('Website:'))?.replace('Website: ', '') || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-foreground font-medium hover:opacity-75 transition-opacity"
