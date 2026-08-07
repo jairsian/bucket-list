@@ -33,8 +33,7 @@ export default function MapView() {
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<any>(null);
   const [selectedMarker, setSelectedMarker] = useState<string | null>(null);
-  const [filterType, setFilterType] = useState<string>('all');
-  const [filterVisited, setFilterVisited] = useState<string>('all');
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [mapCenter, setMapCenter] = useState({ lat: 40.7128, lng: -74.006 });
 
   useEffect(() => {
@@ -62,7 +61,7 @@ export default function MapView() {
 
       if (!response.ok) throw new Error('Failed to fetch items');
       const data = await response.json();
-      setItems(data);
+      setItems(data.filter((item: Item) => item.latitude && item.longitude));
 
       // Center map on first item with coordinates
       if (data.length > 0) {
@@ -81,121 +80,140 @@ export default function MapView() {
     }
   }
 
-  const filteredItems = items.filter((item) => {
-    if (filterType !== 'all' && item.type !== filterType) return false;
-    if (filterVisited === 'visited' && !item.visited) return false;
-    if (filterVisited === 'unvisited' && item.visited) return false;
-    return item.latitude && item.longitude;
-  });
+  const handleItemClick = (item: Item) => {
+    setSelectedItem(item);
+    setSelectedMarker(item.id);
+    setMapCenter({
+      lat: item.latitude || 0,
+      lng: item.longitude || 0,
+    });
+  };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <p className="text-gray-600 dark:text-gray-400">Loading map...</p>
+        <p className="text-muted-foreground">Loading map...</p>
       </div>
     );
   }
 
   return (
-    <div className="relative h-screen w-full">
-      {/* Filter Controls */}
-      <div className="absolute top-4 left-4 z-10 bg-white dark:bg-slate-800 rounded-lg shadow-lg p-4 space-y-3">
-        <Link
-          href="/dashboard"
-          className="block text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
-        >
-          ← Back to Dashboard
-        </Link>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="bg-background border-b border-border">
+        <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl">📍</span>
+            <h1 className="text-2xl font-heading font-bold text-foreground">Bucket</h1>
+          </div>
+          <nav className="flex gap-8 items-center">
+            <Link href="/" className="text-foreground font-medium hover:opacity-75 transition-opacity">
+              Discover
+            </Link>
+            <Link href="/map" className="text-foreground font-medium hover:opacity-75 transition-opacity">
+              Map
+            </Link>
+            <Link href="/tags" className="text-foreground font-medium hover:opacity-75 transition-opacity">
+              Tags
+            </Link>
+          </nav>
+          <div className="w-24"></div>
+        </div>
+      </header>
 
-        <div>
-          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Type
-          </label>
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            className="w-full text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-2 py-1 text-gray-900 dark:text-white"
-          >
-            <option value="all">All Types</option>
-            <option value="venue">Venues</option>
-            <option value="activity">Activities</option>
-            <option value="event">Events</option>
-            <option value="destination">Destinations</option>
-          </select>
+      {/* Main Content - Two Column Layout */}
+      <div className="flex h-[calc(100vh-80px)]">
+        {/* Left Sidebar - Item List */}
+        <div className="w-96 bg-background border-r border-border overflow-y-auto">
+          <div className="p-8">
+            <h2 className="text-3xl font-heading font-bold text-foreground mb-2">Map</h2>
+            <p className="text-muted-foreground mb-6">Explore places others have saved.</p>
+
+            {items.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No items with locations yet.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {items.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => handleItemClick(item)}
+                    className={`w-full text-left p-4 rounded-lg border transition-all ${
+                      selectedItem?.id === item.id
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border hover:border-border/80 bg-card hover:bg-muted/50'
+                    }`}
+                  >
+                    <div className="flex gap-3">
+                      <span className="text-xl flex-shrink-0">📍</span>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-foreground truncate">{item.title}</h3>
+                        <p className="text-sm text-muted-foreground truncate">{item.address || 'No address'}</p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        <div>
-          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Status
-          </label>
-          <select
-            value={filterVisited}
-            onChange={(e) => setFilterVisited(e.target.value)}
-            className="w-full text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-2 py-1 text-gray-900 dark:text-white"
-          >
-            <option value="all">All Items</option>
-            <option value="visited">Visited</option>
-            <option value="unvisited">Unvisited</option>
-          </select>
-        </div>
-
-        <div className="text-xs text-gray-600 dark:text-gray-400">
-          Showing {filteredItems.length} of {items.length} items
-        </div>
-      </div>
-
-      {/* Map */}
-      <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
-        <GoogleMap
-          mapContainerStyle={mapStyles}
-          center={mapCenter}
-          zoom={12}
-          options={{
-            mapTypeControl: true,
-            fullscreenControl: true,
-            zoomControl: true,
-          }}
-        >
-          {filteredItems.map((item) => (
-            <MarkerF
-              key={item.id}
-              position={{
-                lat: item.latitude || 0,
-                lng: item.longitude || 0,
+        {/* Right Side - Map */}
+        <div className="flex-1">
+          <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
+            <GoogleMap
+              mapContainerStyle={mapStyles}
+              center={mapCenter}
+              zoom={12}
+              options={{
+                mapTypeControl: true,
+                fullscreenControl: true,
+                zoomControl: true,
               }}
-              icon={getMarkerColor(item.type)}
-              onClick={() => setSelectedMarker(item.id)}
             >
-              {selectedMarker === item.id && (
-                <InfoWindowF
+              {items.map((item) => (
+                <MarkerF
+                  key={item.id}
                   position={{
                     lat: item.latitude || 0,
                     lng: item.longitude || 0,
                   }}
-                  onCloseClick={() => setSelectedMarker(null)}
+                  icon={getMarkerColor(item.type)}
+                  onClick={() => handleItemClick(item)}
                 >
-                  <div className="p-2 max-w-xs">
-                    <h3 className="font-semibold text-gray-900 text-sm">{item.title}</h3>
-                    <p className="text-xs text-gray-600 capitalize">{item.type}</p>
-                    {item.address && (
-                      <p className="text-xs text-gray-600 mt-1">{item.address}</p>
-                    )}
-                    {item.visited && (
-                      <p className="text-xs text-green-600 mt-1 font-medium">✓ Visited</p>
-                    )}
-                    <Link
-                      href={`/items/${item.id}`}
-                      className="text-xs text-blue-600 hover:text-blue-700 font-medium mt-2 block"
+                  {selectedMarker === item.id && (
+                    <InfoWindowF
+                      position={{
+                        lat: item.latitude || 0,
+                        lng: item.longitude || 0,
+                      }}
+                      onCloseClick={() => setSelectedMarker(null)}
                     >
-                      View Details →
-                    </Link>
-                  </div>
-                </InfoWindowF>
-              )}
-            </MarkerF>
-          ))}
-        </GoogleMap>
-      </LoadScript>
+                      <div className="p-2 max-w-xs">
+                        <h3 className="font-semibold text-gray-900 text-sm">{item.title}</h3>
+                        <p className="text-xs text-gray-600 capitalize">{item.type}</p>
+                        {item.address && (
+                          <p className="text-xs text-gray-600 mt-1">{item.address}</p>
+                        )}
+                        {item.visited && (
+                          <p className="text-xs text-green-600 mt-1 font-medium">✓ Visited</p>
+                        )}
+                        <Link
+                          href={`/items/${item.id}`}
+                          className="text-xs text-blue-600 hover:text-blue-700 font-medium mt-2 block"
+                        >
+                          View Details →
+                        </Link>
+                      </div>
+                    </InfoWindowF>
+                  )}
+                </MarkerF>
+              ))}
+            </GoogleMap>
+          </LoadScript>
+        </div>
+      </div>
     </div>
   );
 }
