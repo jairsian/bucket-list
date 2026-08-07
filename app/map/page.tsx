@@ -161,57 +161,66 @@ export default function MapView() {
 
         {/* Right Side - Map */}
         <div className="flex-1">
-          <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
-            <GoogleMap
-              mapContainerStyle={mapStyles}
-              center={mapCenter}
-              zoom={12}
-              options={{
-                mapTypeControl: true,
-                fullscreenControl: true,
-                zoomControl: true,
-              }}
+          {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? (
+            <LoadScript
+              googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+              libraries={['places']}
             >
-              {items.map((item) => (
-                <MarkerF
-                  key={item.id}
-                  position={{
-                    lat: item.latitude || 0,
-                    lng: item.longitude || 0,
-                  }}
-                  icon={getMarkerColor(item.type)}
-                  onClick={() => handleItemClick(item)}
-                >
-                  {selectedMarker === item.id && (
-                    <InfoWindowF
-                      position={{
-                        lat: item.latitude || 0,
-                        lng: item.longitude || 0,
-                      }}
-                      onCloseClick={() => setSelectedMarker(null)}
-                    >
-                      <div className="p-2 max-w-xs">
-                        <h3 className="font-semibold text-gray-900 text-sm">{item.title}</h3>
-                        <p className="text-xs text-gray-600 capitalize">{item.type}</p>
-                        {item.address && (
-                          <p className="text-xs text-gray-600 mt-1">{item.address}</p>
-                        )}
-                        {item.visited && (
-                          <p className="text-xs text-green-600 mt-1 font-medium">✓ Visited</p>
-                        )}
-                        <Link
-                          href={`/items/${item.id}`}
-                          className="text-xs text-blue-600 hover:text-blue-700 font-medium mt-2 block"
-                        >
-                          View Details →
-                        </Link>
-                      </div>
-                    </InfoWindowF>
-                  )}
-                </MarkerF>
-              ))}
-            </GoogleMap>
-          </LoadScript>
+              <GoogleMap
+                mapContainerStyle={mapStyles}
+                center={mapCenter}
+                zoom={12}
+                options={{
+                  mapTypeControl: true,
+                  fullscreenControl: true,
+                  zoomControl: true,
+                }}
+              >
+                {items.map((item) => (
+                  <MarkerF
+                    key={item.id}
+                    position={{
+                      lat: item.latitude || 0,
+                      lng: item.longitude || 0,
+                    }}
+                    icon={getMarkerColor(item.type)}
+                    onClick={() => handleItemClick(item)}
+                  >
+                    {selectedMarker === item.id && (
+                      <InfoWindowF
+                        position={{
+                          lat: item.latitude || 0,
+                          lng: item.longitude || 0,
+                        }}
+                        onCloseClick={() => setSelectedMarker(null)}
+                      >
+                        <div className="p-2 max-w-xs">
+                          <h3 className="font-semibold text-gray-900 text-sm">{item.title}</h3>
+                          <p className="text-xs text-gray-600 capitalize">{item.type}</p>
+                          {item.address && (
+                            <p className="text-xs text-gray-600 mt-1">{item.address}</p>
+                          )}
+                          {item.visited && (
+                            <p className="text-xs text-green-600 mt-1 font-medium">✓ Visited</p>
+                          )}
+                          <Link
+                            href={`/items/${item.id}`}
+                            className="text-xs text-blue-600 hover:text-blue-700 font-medium mt-2 block"
+                          >
+                            View Details →
+                          </Link>
+                        </div>
+                      </InfoWindowF>
+                    )}
+                  </MarkerF>
+                ))}
+              </GoogleMap>
+            </LoadScript>
+          ) : (
+            <div className="flex items-center justify-center h-full bg-muted">
+              <p className="text-muted-foreground">Google Maps API key not configured</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
