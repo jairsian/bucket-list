@@ -21,6 +21,7 @@ export default function Home() {
   const [itemTags, setItemTags] = useState<ItemTagMap>({});
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const [selectedTagFilter, setSelectedTagFilter] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [session, setSession] = useState<any>(null);
 
   useEffect(() => {
@@ -94,13 +95,26 @@ export default function Home() {
     );
   }
 
-  // Filter items by selected tag
-  const filteredItems = selectedTagFilter === null
-    ? items
-    : items.filter(item => {
-        const tags = itemTags[item.id] || [];
-        return tags.some((tag: any) => tag.tag_id === selectedTagFilter);
-      });
+  // Filter items by selected tag and search query
+  const filteredItems = items.filter(item => {
+    // Tag filter
+    if (selectedTagFilter !== null) {
+      const tags = itemTags[item.id] || [];
+      const hasTag = tags.some((tag: any) => tag.tag_id === selectedTagFilter);
+      if (!hasTag) return false;
+    }
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      const matchesTitle = item.title.toLowerCase().includes(query);
+      const matchesAddress = item.address?.toLowerCase().includes(query);
+      const matchesNotes = item.notes?.toLowerCase().includes(query);
+      return matchesTitle || matchesAddress || matchesNotes;
+    }
+
+    return true;
+  });
 
   const getPlaceholderImage = (type: string) => {
     const placeholders: Record<string, string> = {
@@ -164,6 +178,17 @@ export default function Home() {
           </div>
         ) : (
           <>
+            {/* Search */}
+            <div className="mb-8">
+              <input
+                type="text"
+                placeholder="Search items by title, location, or notes..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full max-w-md px-4 py-2 rounded-lg border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
+              />
+            </div>
+
             {/* Tag Filter */}
             {allTags.length > 0 && (
               <div className="mb-8 space-y-3">
@@ -199,7 +224,9 @@ export default function Home() {
 
             {filteredItems.length === 0 ? (
               <div className="text-center py-16">
-                <p className="text-muted-foreground">No items match the selected tag.</p>
+                <p className="text-muted-foreground">
+                  {searchQuery.trim() ? 'No items match your search.' : 'No items match the selected tag.'}
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
