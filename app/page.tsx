@@ -160,7 +160,7 @@ export default function Home() {
                       {/* Description/Notes */}
                       {item.notes && (
                         <p className="text-muted-foreground text-sm mb-4 line-clamp-3 flex-grow leading-relaxed">
-                          {item.notes}
+                          {item.notes.split('\n').filter(line => !line.startsWith('Website:')).join('\n').trim()}
                         </p>
                       )}
 
