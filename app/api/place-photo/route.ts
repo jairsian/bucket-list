@@ -5,37 +5,32 @@ const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 export async function GET(request: NextRequest) {
   try {
     const placeId = request.nextUrl.searchParams.get('placeId');
-    const latitude = request.nextUrl.searchParams.get('latitude');
-    const longitude = request.nextUrl.searchParams.get('longitude');
 
-    if (!GOOGLE_MAPS_API_KEY) {
-      return NextResponse.json({ error: 'Missing API key' }, { status: 400 });
+    if (!placeId || !GOOGLE_MAPS_API_KEY) {
+      return NextResponse.json({ error: 'Missing placeId or API key' }, { status: 400 });
     }
 
-    // Preferred: Use Street View Static API (most reliable) if we have coordinates
-    if (latitude && longitude) {
-      const photoUrl = `https://maps.googleapis.com/maps/api/streetview?size=600x400&location=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}`;
-      return NextResponse.json({ photoUrl });
-    }
+    // Use new Places API (v1) to get photos
+    try {
+      const response = await fetch(
+        `https://places.googleapis.com/v1/places/${placeId}?fields=photos&key=${GOOGLE_MAPS_API_KEY}`
+      );
 
-    // If only placeId, try to get coordinates from Geocoding API
-    if (placeId) {
-      try {
-        const geoResponse = await fetch(
-          `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=geometry&key=${GOOGLE_MAPS_API_KEY}`
-        );
+      if (response.ok) {
+        const data = await response.json();
 
-        if (geoResponse.ok) {
-          const geoData = await geoResponse.json();
-          if (geoData.result?.geometry?.location) {
-            const { lat, lng } = geoData.result.geometry.location;
-            const photoUrl = `https://maps.googleapis.com/maps/api/streetview?size=600x400&location=${lat},${lng}&key=${GOOGLE_MAPS_API_KEY}`;
-            return NextResponse.json({ photoUrl });
-          }
+        if (data.photos && data.photos.length > 0) {
+          const firstPhoto = data.photos[0];
+          const photoName = firstPhoto.name; // Format: "places/ChIJ.../photos/AWCwydg..."
+
+          // Use the correct endpoint to get the photo media
+          const photoUrl = `https://places.googleapis.com/v1/${photoName}/media?max_height_px=400&max_width_px=600&key=${GOOGLE_MAPS_API_KEY}`;
+
+          return NextResponse.json({ photoUrl });
         }
-      } catch (error) {
-        console.error('Error getting coordinates:', error);
       }
+    } catch (error) {
+      console.error('Error fetching from Places API:', error);
     }
 
     return NextResponse.json({ photoUrl: null });
