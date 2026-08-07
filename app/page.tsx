@@ -14,6 +14,10 @@ type Tag = {
   color: string | null;
 };
 
+type PlacePhotoMap = {
+  [itemId: string]: string | null;
+};
+
 export default function Home() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,6 +26,7 @@ export default function Home() {
   const [selectedTagFilter, setSelectedTagFilter] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [session, setSession] = useState<any>(null);
+  const [placePhotos, setPlacePhotos] = useState<PlacePhotoMap>({});
 
   useEffect(() => {
     async function fetchItems() {
@@ -74,6 +79,24 @@ export default function Home() {
           }
         }
         setItemTags(tagMap);
+
+        // Fetch place photos for items with google_place_id
+        const photoMap: PlacePhotoMap = {};
+        for (const item of itemsData || []) {
+          if (item.google_place_id) {
+            try {
+              const photoResponse = await fetch(`/api/place-photo?placeId=${item.google_place_id}`);
+              if (photoResponse.ok) {
+                const photoData = await photoResponse.json();
+                photoMap[item.id] = photoData.photoUrl || null;
+              }
+            } catch (error) {
+              console.error(`Error fetching photo for ${item.id}:`, error);
+              photoMap[item.id] = null;
+            }
+          }
+        }
+        setPlacePhotos(photoMap);
       } catch (error) {
         console.error('Error fetching items:', error);
         setItems([]);
@@ -241,7 +264,7 @@ export default function Home() {
                     {/* Image */}
                     <div className="h-72 bg-muted overflow-hidden">
                       <img
-                        src={getPlaceholderImage(item.type)}
+                        src={placePhotos[item.id] || getPlaceholderImage(item.type)}
                         alt={item.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
