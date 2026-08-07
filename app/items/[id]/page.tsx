@@ -442,18 +442,32 @@ export default function ItemDetail() {
               </div>
             )}
 
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-6 items-center">
               {item.google_maps_url && (
                 <a
                   href={item.google_maps_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-6 py-2 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors"
                 >
-                  Open in Google Maps
+                  <span>↗</span>
+                  <span>Open in Google Maps</span>
                 </a>
               )}
 
+              {item.google_maps_url && (
+                <a
+                  href={item.google_maps_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-foreground font-medium hover:opacity-75 transition-opacity"
+                >
+                  Website
+                </a>
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-3 mt-8">
               <button
                 onClick={handleExportCalendar}
                 className="px-6 py-2 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors"
