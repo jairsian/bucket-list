@@ -133,12 +133,12 @@ export default function Home() {
                     {/* Content */}
                     <div className="p-6 flex flex-col flex-grow">
                       {/* Type Badge + Tags */}
-                      <div className="flex gap-2 mb-4 flex-wrap">
-                        <span className={`${itemTypeColors.badge} px-3 py-1 rounded-full text-xs font-medium`}>
+                      <div className="flex gap-3 items-center mb-4 flex-wrap">
+                        <span className={`${itemTypeColors.badge} px-3 py-1 rounded text-xs font-medium`}>
                           {itemTypeText}
                         </span>
                         {item.visited && (
-                          <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium">
+                          <span className="text-green-700 text-xs font-medium">
                             ✓ Visited
                           </span>
                         )}
@@ -173,10 +173,12 @@ export default function Home() {
                       )}
 
                       {/* Maps Link */}
-                      <Link href={item.google_maps_url || '#'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-primary hover:opacity-75 text-sm font-medium transition-opacity duration-200 mt-auto pt-4 border-t border-border">
-                        <span>📍</span>
-                        <span>Maps</span>
-                      </Link>
+                      {item.google_maps_url && (
+                        <a href={item.google_maps_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-2 text-primary hover:opacity-75 text-sm font-medium transition-opacity duration-200 mt-auto pt-4 border-t border-border">
+                          <span>📍</span>
+                          <span>Maps</span>
+                        </a>
+                      )}
                     </div>
                   </div>
                 </Link>
