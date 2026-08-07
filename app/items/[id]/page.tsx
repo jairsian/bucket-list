@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Item } from '@/lib/supabase';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function ItemDetail() {
   const router = useRouter();
@@ -188,10 +189,20 @@ export default function ItemDetail() {
     }
   }
 
+  const getPlaceholderImage = (type: string) => {
+    const placeholders: Record<string, string> = {
+      venue: 'https://images.unsplash.com/photo-1517457373614-b7152f800fd1?w=800&h=400&fit=crop',
+      activity: 'https://images.unsplash.com/photo-1527004545514-d3dcc0e43a92?w=800&h=400&fit=crop',
+      event: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&h=400&fit=crop',
+      destination: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&h=400&fit=crop',
+    };
+    return placeholders[type] || placeholders.venue;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+        <p className="text-muted-foreground">Loading...</p>
       </div>
     );
   }
@@ -200,9 +211,9 @@ export default function ItemDetail() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <p className="text-gray-600 dark:text-gray-400 mb-4">Item not found</p>
-          <Link href="/dashboard" className="text-blue-600 hover:text-blue-700">
-            Back to dashboard
+          <p className="text-muted-foreground mb-4">Item not found</p>
+          <Link href="/" className="text-primary hover:opacity-80">
+            Back to items
           </Link>
         </div>
       </div>
@@ -210,16 +221,29 @@ export default function ItemDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 py-8">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Link href="/dashboard" className="text-blue-600 hover:text-blue-700 mb-4 inline-block">
-          ← Back to dashboard
+    <div className="min-h-screen bg-background py-8">
+      <div className="max-w-3xl mx-auto px-6">
+        <Link href="/" className="text-primary hover:opacity-80 mb-6 inline-block">
+          ← Back to items
         </Link>
 
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
+        <div className="bg-card rounded-lg border border-border overflow-hidden">
+          {/* Image */}
+          <div className="relative h-80 bg-muted overflow-hidden">
+            <Image
+              src={getPlaceholderImage(item.type)}
+              alt={item.title}
+              fill
+              className="object-cover"
+              priority
+            />
+          </div>
+
+          {/* Content */}
+          <div className="p-8">
           {isEditing ? (
             <>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Edit Item</h2>
+              <h2 className="text-2xl font-heading font-bold text-foreground mb-6">Edit Item</h2>
               <div className="space-y-6">
                 <div>
                   <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -461,23 +485,23 @@ export default function ItemDetail() {
 
           {showDeleteConfirm && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-6 max-w-sm">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Delete Item?</h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-6">
+              <div className="bg-card rounded-lg border border-border shadow-lg p-6 max-w-sm">
+                <h3 className="text-lg font-bold text-foreground mb-2">Delete Item?</h3>
+                <p className="text-muted-foreground mb-6">
                   Are you sure you want to delete "{item.title}"? This cannot be undone.
                 </p>
                 <div className="flex gap-3">
                   <button
                     onClick={handleDelete}
                     disabled={updating}
-                    className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white rounded-md font-medium"
+                    className="flex-1 px-4 py-2 bg-destructive hover:opacity-90 disabled:opacity-50 text-destructive-foreground rounded-md font-medium"
                   >
                     {updating ? 'Deleting...' : 'Delete'}
                   </button>
                   <button
                     onClick={() => setShowDeleteConfirm(false)}
                     disabled={updating}
-                    className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 rounded-md font-medium disabled:opacity-50"
+                    className="flex-1 px-4 py-2 border border-border text-foreground hover:bg-muted rounded-md font-medium disabled:opacity-50"
                   >
                     Cancel
                   </button>
@@ -485,6 +509,7 @@ export default function ItemDetail() {
               </div>
             </div>
           )}
+          </div>
         </div>
       </div>
     </div>
