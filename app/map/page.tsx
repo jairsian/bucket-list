@@ -176,7 +176,6 @@ export default function MapView() {
             <LoadScript
               googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
               libraries={['places']}
-              preventGoogleMapsScriptReload
             >
               <GoogleMap
                 mapContainerStyle={mapStyles}

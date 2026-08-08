@@ -24,6 +24,8 @@ export type Item = {
   google_maps_url: string | null;
   event_date: string | null;
   event_time: string | null;
+  instagram_url: string | null;
+  selected_photo_index: number | null;
   created_at: string;
   updated_at: string;
 };
