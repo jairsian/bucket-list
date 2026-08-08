@@ -6,6 +6,7 @@ import { GoogleMap, LoadScript, MarkerF, InfoWindowF } from '@react-google-maps/
 import { supabase } from '@/lib/supabase';
 import { Item } from '@/lib/supabase';
 import Link from 'next/link';
+import { ItemModal } from '@/components/ItemModal';
 
 const mapStyles = {
   height: '100vh',
@@ -33,7 +34,7 @@ export default function MapView() {
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<any>(null);
   const [selectedMarker, setSelectedMarker] = useState<string | null>(null);
-  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  const [selectedItemForModal, setSelectedItemForModal] = useState<Item | null>(null);
   const [mapCenter, setMapCenter] = useState({ lat: 40.7128, lng: -74.006 });
 
   useEffect(() => {
@@ -81,12 +82,22 @@ export default function MapView() {
   }
 
   const handleItemClick = (item: Item) => {
-    setSelectedItem(item);
+    setSelectedItemForModal(item);
     setSelectedMarker(item.id);
     setMapCenter({
       lat: item.latitude || 0,
       lng: item.longitude || 0,
     });
+  };
+
+  const handleItemUpdated = (updatedItem: Item) => {
+    setItems(items.map(i => i.id === updatedItem.id ? updatedItem : i));
+    setSelectedItemForModal(updatedItem);
+  };
+
+  const handleItemDeleted = (itemId: string) => {
+    setItems(items.filter(i => i.id !== itemId));
+    setSelectedItemForModal(null);
   };
 
   if (loading) {
@@ -140,7 +151,7 @@ export default function MapView() {
                     key={item.id}
                     onClick={() => handleItemClick(item)}
                     className={`w-full text-left p-4 rounded-lg border transition-all ${
-                      selectedItem?.id === item.id
+                      selectedItemForModal?.id === item.id
                         ? 'border-primary bg-primary/5'
                         : 'border-border hover:border-border/80 bg-card hover:bg-muted/50'
                     }`}
@@ -165,6 +176,7 @@ export default function MapView() {
             <LoadScript
               googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
               libraries={['places']}
+              preventGoogleMapsScriptReload
             >
               <GoogleMap
                 mapContainerStyle={mapStyles}
@@ -203,12 +215,12 @@ export default function MapView() {
                           {item.visited && (
                             <p className="text-xs text-green-600 mt-1 font-medium">✓ Visited</p>
                           )}
-                          <Link
-                            href={`/items/${item.id}`}
+                          <button
+                            onClick={() => setSelectedItemForModal(item)}
                             className="text-xs text-blue-600 hover:text-blue-700 font-medium mt-2 block"
                           >
                             View Details →
-                          </Link>
+                          </button>
                         </div>
                       </InfoWindowF>
                     )}
@@ -223,6 +235,16 @@ export default function MapView() {
           )}
         </div>
       </div>
+
+      {/* Item Modal */}
+      <ItemModal
+        item={selectedItemForModal}
+        isOpen={!!selectedItemForModal}
+        onClose={() => setSelectedItemForModal(null)}
+        session={session}
+        onItemUpdated={handleItemUpdated}
+        onItemDeleted={handleItemDeleted}
+      />
     </div>
   );
 }

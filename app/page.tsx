@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Item, supabase } from '@/lib/supabase';
 import Link from 'next/link';
+import { ItemModal } from '@/components/ItemModal';
 
 type ItemTagMap = {
   [itemId: string]: any[];
@@ -24,9 +25,22 @@ export default function Home() {
   const [itemTags, setItemTags] = useState<ItemTagMap>({});
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const [selectedTagFilter, setSelectedTagFilter] = useState<number | null>(null);
+  const [selectedTypeFilter, setSelectedTypeFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [session, setSession] = useState<any>(null);
   const [placePhotos, setPlacePhotos] = useState<PlacePhotoMap>({});
+  const [selectedItemForModal, setSelectedItemForModal] = useState<Item | null>(null);
+
+
+  const handleItemUpdated = (updatedItem: Item) => {
+    setItems(items.map(i => i.id === updatedItem.id ? updatedItem : i));
+    setSelectedItemForModal(updatedItem);
+  };
+
+  const handleItemDeleted = (itemId: string) => {
+    setItems(items.filter(i => i.id !== itemId));
+    setSelectedItemForModal(null);
+  };
 
   useEffect(() => {
     async function fetchItems() {
@@ -85,7 +99,10 @@ export default function Home() {
         for (const item of itemsData || []) {
           if (item.google_place_id) {
             try {
-              const photoResponse = await fetch(`/api/place-photo?placeId=${item.google_place_id}`);
+              const selectedPhotoIndex = item.selected_photo_index || 0;
+              const photoResponse = await fetch(
+                `/api/place-photo?placeId=${item.google_place_id}&selectedPhotoIndex=${selectedPhotoIndex}`
+              );
               if (photoResponse.ok) {
                 const photoData = await photoResponse.json();
                 photoMap[item.id] = photoData.photoUrl || null;
@@ -117,8 +134,13 @@ export default function Home() {
     );
   }
 
-  // Filter items by selected tag and search query
+  // Filter items by selected tag, type, and search query
   const filteredItems = items.filter(item => {
+    // Type filter
+    if (selectedTypeFilter !== null) {
+      if (item.type !== selectedTypeFilter) return false;
+    }
+
     // Tag filter
     if (selectedTagFilter !== null) {
       const tags = itemTags[item.id] || [];
@@ -181,7 +203,7 @@ export default function Home() {
             href="/add"
             className="px-4 py-2 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors duration-200"
           >
-            Sign in
+            + Add Item
           </Link>
         </div>
       </header>
@@ -202,49 +224,78 @@ export default function Home() {
           </div>
         ) : (
           <>
-            {/* Search */}
-            <div className="mb-8">
-              <input
-                type="text"
-                placeholder="Search items by title, location, or notes..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full max-w-md px-4 py-2 rounded-lg border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
-              />
-            </div>
+            {/* Filters Section */}
+            <div className="mb-12 space-y-6">
+              {/* Search */}
+              <div>
+                <input
+                  type="text"
+                  placeholder="Search items by title, location, or notes..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
 
-            {/* Tag Filter */}
-            {allTags.length > 0 && (
-              <div className="mb-8 space-y-3">
-                <p className="text-sm font-medium text-muted-foreground">Filter by tag:</p>
+              {/* Type Filter Tabs */}
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wide">Type</p>
                 <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => setSelectedTagFilter(null)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                      selectedTagFilter === null
-                        ? 'bg-primary text-primary-foreground'
-                        : 'border border-border text-foreground hover:bg-muted'
-                    }`}
-                  >
-                    All
-                  </button>
-                  {allTags.map((tag) => (
-                    <button
-                      key={tag.id}
-                      onClick={() => setSelectedTagFilter(tag.id)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                        selectedTagFilter === tag.id
-                          ? 'ring-2 ring-offset-2 ring-foreground'
-                          : 'opacity-75 hover:opacity-100'
-                      }`}
-                      style={{ backgroundColor: tag.color || '#ccc', color: 'white' }}
-                    >
-                      {tag.name}
-                    </button>
-                  ))}
+                  {['all', 'venue', 'activity', 'event', 'destination'].map((type) => {
+                    const typeInfo = typeColors[type] || typeColors.venue;
+                    const label = type === 'all' ? 'All Types' : typeInfo.text;
+                    const isActive = (type === 'all' && selectedTypeFilter === null) || (type !== 'all' && selectedTypeFilter === type);
+
+                    return (
+                      <button
+                        key={type}
+                        onClick={() => setSelectedTypeFilter(type === 'all' ? null : type)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                          isActive
+                            ? `${typeInfo.badge} ring-2 ring-offset-2 ring-offset-background ring-current`
+                            : 'border border-border text-foreground hover:bg-muted'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
-            )}
+
+              {/* Tag Filter */}
+              {allTags.length > 0 && (
+                <div className="space-y-3 pt-2 border-t border-border">
+                  <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wide">Tags</p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setSelectedTagFilter(null)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        selectedTagFilter === null
+                          ? 'bg-primary text-primary-foreground'
+                          : 'border border-border text-foreground hover:bg-muted'
+                      }`}
+                    >
+                      All Tags
+                    </button>
+                    {allTags.map((tag) => (
+                      <button
+                        key={tag.id}
+                        onClick={() => setSelectedTagFilter(tag.id)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                          selectedTagFilter === tag.id
+                            ? 'ring-2 ring-offset-2 ring-offset-background ring-current'
+                            : 'opacity-75 hover:opacity-100 hover:ring-2 hover:ring-offset-2 hover:ring-offset-background'
+                        }`}
+                        style={{ backgroundColor: tag.color || '#ccc', color: 'white' }}
+                      >
+                        {tag.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
 
             {filteredItems.length === 0 ? (
               <div className="text-center py-16">
@@ -259,7 +310,7 @@ export default function Home() {
               const itemTypeText = itemTypeColors.text;
 
               return (
-                <Link key={item.id} href={`/items/${item.id}`} className="group">
+                <div key={item.id} className="group cursor-pointer" onClick={() => setSelectedItemForModal(item)}>
                   <div className="bg-card rounded-xl overflow-hidden border border-border hover:border-border/80 transition-all duration-300 h-full flex flex-col">
                     {/* Image */}
                     <div className="h-72 bg-muted overflow-hidden">
@@ -297,7 +348,14 @@ export default function Home() {
                         </div>
                       )}
 
-                      {/* Description/Notes */}
+                      {/* Description */}
+                      {item.description && (
+                        <p className="text-muted-foreground text-sm mb-3 line-clamp-2 leading-relaxed italic">
+                          {item.description}
+                        </p>
+                      )}
+
+                      {/* Notes */}
                       {item.notes && (
                         <p className="text-muted-foreground text-sm mb-4 line-clamp-3 flex-grow leading-relaxed">
                           {item.notes}
@@ -336,7 +394,7 @@ export default function Home() {
                       )}
                     </div>
                   </div>
-                </Link>
+                </div>
               );
                 })}
               </div>
@@ -344,6 +402,16 @@ export default function Home() {
           </>
         )}
       </main>
+
+      {/* Item Modal */}
+      <ItemModal
+        item={selectedItemForModal}
+        isOpen={!!selectedItemForModal}
+        onClose={() => setSelectedItemForModal(null)}
+        session={session}
+        onItemUpdated={handleItemUpdated}
+        onItemDeleted={handleItemDeleted}
+      />
     </div>
   );
 }

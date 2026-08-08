@@ -65,8 +65,8 @@ export function PhotoSelector({ placeId, selectedIndex, onSelect, onClose }: Pho
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="sticky top-0 bg-background border-b border-border p-4 flex justify-between items-center">
           <h2 className="text-xl font-semibold text-foreground">Select Photo</h2>
           <button

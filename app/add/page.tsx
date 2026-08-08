@@ -17,6 +17,8 @@ function AddItemContent() {
   const [type, setType] = useState<'event' | 'venue' | 'activity' | 'destination'>('venue');
   const [address, setAddress] = useState('');
   const [website, setWebsite] = useState('');
+  const [instagramUrl, setInstagramUrl] = useState('');
+  const [description, setDescription] = useState('');
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [googlePlaceId, setGooglePlaceId] = useState('');
@@ -41,10 +43,43 @@ function AddItemContent() {
       setSession(data.session);
 
       // Check if this was a deep link from share sheet
-      const url = searchParams.get('url');
+      const shareType = searchParams.get('shareType');
+      const shareUrl = searchParams.get('url');
+      const shareTitle = searchParams.get('title');
+      const shareAddress = searchParams.get('address');
+      const instagramShareUrl = searchParams.get('instagram_url');
       const placeId = searchParams.get('placeId');
 
-      if (placeId) {
+      // Handle Instagram share
+      if (shareType === 'instagram' && instagramShareUrl) {
+        setInstagramUrl(instagramShareUrl);
+        setType('venue');
+        if (shareTitle) setTitle(shareTitle);
+      }
+      // Handle Google Maps share
+      else if (shareType === 'google_maps' && placeId) {
+        try {
+          const place = await getPlaceDetails(placeId);
+          setTitle(place.name);
+          setAddress(place.formattedAddress);
+          setGooglePlaceId(place.placeId);
+          setType('venue');
+          if (place.geometry?.location) {
+            setLatitude(place.geometry.location.lat);
+            setLongitude(place.geometry.location.lng);
+          }
+        } catch (error) {
+          console.error('Error loading place:', error);
+        }
+      }
+      // Handle website share
+      else if (shareType === 'website' && shareUrl) {
+        setWebsite(shareUrl);
+        if (shareTitle) setTitle(shareTitle);
+        setType('destination');
+      }
+      // Fallback to old deep link handling
+      else if (placeId) {
         // Pre-fill from Google Place
         try {
           const place = await getPlaceDetails(placeId);
@@ -58,9 +93,9 @@ function AddItemContent() {
         } catch (error) {
           console.error('Error loading place:', error);
         }
-      } else if (url) {
+      } else if (shareUrl) {
         // Try to extract place ID from URL
-        const extractedId = extractPlaceIdFromMapUrl(url);
+        const extractedId = extractPlaceIdFromMapUrl(shareUrl);
         if (extractedId) {
           try {
             const place = await getPlaceDetails(extractedId);
@@ -106,6 +141,9 @@ function AddItemContent() {
     if (place.website) {
       setWebsite(place.website);
     }
+    if (place.description) {
+      setDescription(place.description);
+    }
     if (place.geometry?.location) {
       setLatitude(place.geometry.location.lat);
       setLongitude(place.geometry.location.lng);
@@ -130,11 +168,13 @@ function AddItemContent() {
           title: title.trim(),
           type,
           address: address || null,
+          description: description || null,
           latitude: latitude || null,
           longitude: longitude || null,
           google_place_id: googlePlaceId || null,
           notes: notes || null,
           website_url: website || null,
+          instagram_url: instagramUrl || null,
           event_date: type === 'event' && eventDate ? eventDate : null,
           event_time: type === 'event' && eventTime ? eventTime : null,
           visited: false,
@@ -162,7 +202,7 @@ function AddItemContent() {
         }
       }
 
-      setTimeout(() => router.push('/dashboard'), 100);
+      setTimeout(() => router.push('/'), 100);
     } catch (error) {
       console.error('Error creating item:', error);
       alert('Failed to create item');
@@ -288,6 +328,21 @@ function AddItemContent() {
             </div>
           )}
 
+          {/* Instagram Post/Reel (all types) */}
+          <div>
+            <label htmlFor="instagram" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Instagram Post/Reel
+            </label>
+            <input
+              id="instagram"
+              type="url"
+              value={instagramUrl}
+              onChange={(e) => setInstagramUrl(e.target.value)}
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              placeholder="https://instagram.com/p/..."
+            />
+          </div>
+
           {/* Event Date & Time (event only) */}
           {type === 'event' && (
             <>
@@ -318,6 +373,21 @@ function AddItemContent() {
               </div>
             </>
           )}
+
+          {/* Description */}
+          <div>
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Description <span className="text-gray-500 text-xs">(from Google Places)</span>
+            </label>
+            <textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              placeholder="Place description (auto-filled from Google Places)..."
+            />
+          </div>
 
           {/* Notes (all types) */}
           <div>

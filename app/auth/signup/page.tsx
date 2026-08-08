@@ -43,7 +43,7 @@ export default function SignupPage() {
 
       if (signInError) throw signInError;
 
-      setTimeout(() => router.push('/dashboard'), 100);
+      setTimeout(() => router.push('/'), 100);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed');
     } finally {

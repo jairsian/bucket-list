@@ -9,6 +9,7 @@ export interface PlaceSearchResult {
   placeId: string;
   types?: string[];
   website?: string;
+  description?: string;
   geometry?: {
     location: {
       lat: number;
