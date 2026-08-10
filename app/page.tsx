@@ -195,8 +195,8 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-background border-b border-border">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
+      <header className="bg-background border-b border-border sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4 pt-safe">
           <div className="flex items-center gap-2 flex-shrink-0">
             <span className="text-2xl">📍</span>
             <h1 className="text-xl font-heading font-bold text-foreground">Bucket</h1>
