@@ -94,7 +94,7 @@ export default function Home() {
         }
         setItemTags(tagMap);
 
-        // Fetch place photos for items with google_place_id
+        // Fetch place photos for items with google_place_id, or website images
         const photoMap: PlacePhotoMap = {};
         for (const item of itemsData || []) {
           if (item.google_place_id) {
@@ -109,6 +109,19 @@ export default function Home() {
               }
             } catch (error) {
               console.error(`Error fetching photo for ${item.id}:`, error);
+              photoMap[item.id] = null;
+            }
+          } else if (item.website_url && !photoMap[item.id]) {
+            try {
+              const websiteResponse = await fetch(
+                `/api/website-image?url=${encodeURIComponent(item.website_url)}`
+              );
+              if (websiteResponse.ok) {
+                const websiteData = await websiteResponse.json();
+                photoMap[item.id] = websiteData.imageUrl || null;
+              }
+            } catch (error) {
+              console.error(`Error fetching website image for ${item.id}:`, error);
               photoMap[item.id] = null;
             }
           }
