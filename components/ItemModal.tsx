@@ -525,8 +525,8 @@ export function ItemModal({ item, isOpen, onClose, session, onItemUpdated, onIte
                   />
                 </div>
 
-                {/* 6. Dates & Time (if not instagram, if not website) */}
-                {!editData.instagram_url && !editData.website_url && editData.type === 'event' && (
+                {/* 6. Dates & Time (always show for events) */}
+                {editData.type === 'event' && (
                   <>
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-2">Start Date</label>
@@ -539,27 +539,11 @@ export function ItemModal({ item, isOpen, onClose, session, onItemUpdated, onIte
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Start Time</label>
-                      <input
-                        type="time"
-                        value={editData.event_time}
-                        onChange={(e) => setEditData({ ...editData, event_time: e.target.value })}
-                        className="w-full rounded-lg border border-border bg-card px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                  </>
-                )}
-
-                {/* Always show dates if instagram or website is set */}
-                {(editData.instagram_url || editData.website_url) && editData.type === 'event' && (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Start Date</label>
+                      <label className="block text-sm font-medium text-foreground mb-2">End Date</label>
                       <input
                         type="date"
-                        value={editData.event_date}
-                        onChange={(e) => setEditData({ ...editData, event_date: e.target.value })}
                         className="w-full rounded-lg border border-border bg-card px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        placeholder="Optional"
                       />
                     </div>
 
