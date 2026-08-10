@@ -24,6 +24,7 @@ function AddItemContent() {
   const [googlePlaceId, setGooglePlaceId] = useState('');
   const [notes, setNotes] = useState('');
   const [eventDate, setEventDate] = useState('');
+  const [eventEndDate, setEventEndDate] = useState('');
   const [eventTime, setEventTime] = useState('');
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -311,8 +312,8 @@ function AddItemContent() {
             )}
           </div>
 
-          {/* Website (venue, activity) */}
-          {(type === 'venue' || type === 'activity') && (
+          {/* Website (venue, activity, event) */}
+          {(type === 'venue' || type === 'activity' || type === 'event') && (
             <div>
               <label htmlFor="website" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Website
@@ -348,7 +349,7 @@ function AddItemContent() {
             <>
               <div>
                 <label htmlFor="eventDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Event Date *
+                  Start Date
                 </label>
                 <input
                   id="eventDate"
@@ -360,8 +361,21 @@ function AddItemContent() {
               </div>
 
               <div>
+                <label htmlFor="eventEndDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  End Date
+                </label>
+                <input
+                  id="eventEndDate"
+                  type="date"
+                  value={eventEndDate}
+                  onChange={(e) => setEventEndDate(e.target.value)}
+                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
                 <label htmlFor="eventTime" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Event Time
+                  Start Time
                 </label>
                 <input
                   id="eventTime"
