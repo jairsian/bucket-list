@@ -190,7 +190,7 @@ export default function Home() {
           </div>
           <nav className="flex gap-4 items-center flex-1 justify-center">
             <Link href="/" className="text-sm text-foreground font-medium hover:opacity-75 transition-opacity whitespace-nowrap">
-              Discover
+              List
             </Link>
             <Link href="/map" className="text-sm text-foreground font-medium hover:opacity-75 transition-opacity whitespace-nowrap">
               Map
