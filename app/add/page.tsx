@@ -226,7 +226,7 @@ function AddItemContent() {
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Add Item to Bucket List</h1>
 
         <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800 rounded-lg shadow p-6 space-y-6">
-          {/* Type */}
+          {/* 1. Type */}
           <div>
             <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Type *
@@ -244,23 +244,7 @@ function AddItemContent() {
             </select>
           </div>
 
-          {/* Title */}
-          <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Title *
-            </label>
-            <input
-              id="title"
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-              placeholder={type === 'destination' ? 'e.g., Tokyo' : 'e.g., Il Posto Accanto'}
-            />
-          </div>
-
-          {/* Address with Google Maps Search (all types) */}
+          {/* 2. Location (search + address display) */}
           <div className="space-y-3">
             <div>
               <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -312,8 +296,23 @@ function AddItemContent() {
             )}
           </div>
 
-          {/* Website (venue, activity, event) */}
-          {(type === 'venue' || type === 'activity' || type === 'event') && (
+          {/* 3. Instagram Post/Reel */}
+          <div>
+            <label htmlFor="instagram" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Instagram Post/Reel
+            </label>
+            <input
+              id="instagram"
+              type="url"
+              value={instagramUrl}
+              onChange={(e) => setInstagramUrl(e.target.value)}
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              placeholder="https://instagram.com/p/..."
+            />
+          </div>
+
+          {/* 4. Website (conditional: venue/activity/event, if not instagram) */}
+          {(type === 'venue' || type === 'activity' || type === 'event') && !instagramUrl && (
             <div>
               <label htmlFor="website" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Website
@@ -329,81 +328,108 @@ function AddItemContent() {
             </div>
           )}
 
-          {/* Instagram Post/Reel (all types) */}
-          <div>
-            <label htmlFor="instagram" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Instagram Post/Reel
-            </label>
-            <input
-              id="instagram"
-              type="url"
-              value={instagramUrl}
-              onChange={(e) => setInstagramUrl(e.target.value)}
-              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-              placeholder="https://instagram.com/p/..."
-            />
-          </div>
+          {/* 5. Title (if not instagram, if not website) */}
+          {!instagramUrl && !website && (
+            <div>
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Title *
+              </label>
+              <input
+                id="title"
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                placeholder={type === 'destination' ? 'e.g., Tokyo' : 'e.g., Il Posto Accanto'}
+              />
+            </div>
+          )}
 
-          {/* Event Date & Time (event only) */}
-          {type === 'event' && (
+          {/* Always show title if we don't have those fields, or show it if explicitly filled */}
+          {(instagramUrl || website) && (
+            <div>
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Title *
+              </label>
+              <input
+                id="title"
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                placeholder={type === 'destination' ? 'e.g., Tokyo' : 'e.g., Il Posto Accanto'}
+              />
+            </div>
+          )}
+
+          {/* 6. Dates & Time (all types, optional, if not instagram, if not website) */}
+          {!instagramUrl && !website && (
             <>
-              <div>
-                <label htmlFor="eventDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Start Date
-                </label>
-                <input
-                  id="eventDate"
-                  type="date"
-                  value={eventDate}
-                  onChange={(e) => setEventDate(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-                />
-              </div>
+              {type === 'event' && (
+                <>
+                  <div>
+                    <label htmlFor="eventDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Start Date
+                    </label>
+                    <input
+                      id="eventDate"
+                      type="date"
+                      value={eventDate}
+                      onChange={(e) => setEventDate(e.target.value)}
+                      className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                    />
+                  </div>
 
-              <div>
-                <label htmlFor="eventEndDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  End Date
-                </label>
-                <input
-                  id="eventEndDate"
-                  type="date"
-                  value={eventEndDate}
-                  onChange={(e) => setEventEndDate(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-                />
-              </div>
+                  <div>
+                    <label htmlFor="eventEndDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      End Date
+                    </label>
+                    <input
+                      id="eventEndDate"
+                      type="date"
+                      value={eventEndDate}
+                      onChange={(e) => setEventEndDate(e.target.value)}
+                      className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                    />
+                  </div>
 
-              <div>
-                <label htmlFor="eventTime" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Start Time
-                </label>
-                <input
-                  id="eventTime"
-                  type="time"
-                  value={eventTime}
-                  onChange={(e) => setEventTime(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-                />
-              </div>
+                  <div>
+                    <label htmlFor="eventTime" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Start Time
+                    </label>
+                    <input
+                      id="eventTime"
+                      type="time"
+                      value={eventTime}
+                      onChange={(e) => setEventTime(e.target.value)}
+                      className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                    />
+                  </div>
+                </>
+              )}
             </>
           )}
 
-          {/* Description */}
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Description <span className="text-gray-500 text-xs">(from Google Places)</span>
-            </label>
-            <textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-              placeholder="Place description (auto-filled from Google Places)..."
-            />
-          </div>
+          {/* 7. Description (if not instagram, if not website) */}
+          {!instagramUrl && !website && (
+            <div>
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Description <span className="text-gray-500 text-xs">(from Google Places)</span>
+              </label>
+              <textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+                className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                placeholder="Place description (auto-filled from Google Places)..."
+              />
+            </div>
+          )}
 
-          {/* Notes (all types) */}
+          {/* 8. Notes */}
           <div>
             <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Notes
@@ -418,7 +444,7 @@ function AddItemContent() {
             />
           </div>
 
-          {/* Tags */}
+          {/* 9. Tags */}
           <div className="p-4 bg-gray-50 dark:bg-slate-800 rounded-md">
             <TagSelector
               selectedTagIds={selectedTagIds}
