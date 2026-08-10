@@ -183,28 +183,37 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-background border-b border-border">
-        <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">📍</span>
-            <h1 className="text-2xl font-heading font-bold text-foreground">Bucket</h1>
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="text-2xl">📍</span>
+            <h1 className="text-xl font-heading font-bold text-foreground">Bucket</h1>
           </div>
-          <nav className="flex gap-8 items-center">
-            <Link href="/" className="text-foreground font-medium hover:opacity-75 transition-opacity">
+          <nav className="flex gap-4 items-center flex-1 justify-center">
+            <Link href="/" className="text-sm text-foreground font-medium hover:opacity-75 transition-opacity whitespace-nowrap">
               Discover
             </Link>
-            <Link href="/map" className="text-foreground font-medium hover:opacity-75 transition-opacity">
+            <Link href="/map" className="text-sm text-foreground font-medium hover:opacity-75 transition-opacity whitespace-nowrap">
               Map
             </Link>
-            <Link href="/tags" className="text-foreground font-medium hover:opacity-75 transition-opacity">
+            <Link href="/tags" className="text-sm text-foreground font-medium hover:opacity-75 transition-opacity whitespace-nowrap">
               Tags
             </Link>
           </nav>
-          <Link
-            href="/add"
-            className="px-4 py-2 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors duration-200"
-          >
-            + Add Item
-          </Link>
+          {session ? (
+            <Link
+              href="/add"
+              className="px-4 py-2 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors duration-200 flex-shrink-0"
+            >
+              + Add
+            </Link>
+          ) : (
+            <Link
+              href="/auth/login"
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity flex-shrink-0"
+            >
+              Sign In
+            </Link>
+          )}
         </div>
       </header>
 
