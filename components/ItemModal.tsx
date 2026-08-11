@@ -144,7 +144,18 @@ export function ItemModal({ item, isOpen, onClose, session, onItemUpdated, onIte
     if (!item) return;
 
     try {
-      // Get fresh session to ensure token is valid
+      // Optimistically fetch and display the new photo immediately
+      if (item.google_place_id) {
+        const photoResponse = await fetch(
+          `/api/place-photo?placeId=${item.google_place_id}&selectedPhotoIndex=${photoIndex}`
+        );
+        if (photoResponse.ok) {
+          const photoData = await photoResponse.json();
+          setItemPhotoUrl(photoData.photoUrl);
+        }
+      }
+
+      // Then persist the change in background
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token;
       if (!token) {
@@ -163,16 +174,6 @@ export function ItemModal({ item, isOpen, onClose, session, onItemUpdated, onIte
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to update photo');
-      }
-
-      if (item.google_place_id) {
-        const photoResponse = await fetch(
-          `/api/place-photo?placeId=${item.google_place_id}&selectedPhotoIndex=${photoIndex}`
-        );
-        if (photoResponse.ok) {
-          const photoData = await photoResponse.json();
-          setItemPhotoUrl(photoData.photoUrl);
-        }
       }
 
       // Update the item with the new photo index and notify parent
@@ -470,9 +471,9 @@ export function ItemModal({ item, isOpen, onClose, session, onItemUpdated, onIte
               {item.google_place_id && !item.website_url && (
                 <button
                   onClick={() => setShowPhotoSelector(true)}
-                  className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors opacity-0 group-hover:opacity-100"
+                  className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
                 >
-                  Change Image
+                  📸
                 </button>
               )}
             </div>
