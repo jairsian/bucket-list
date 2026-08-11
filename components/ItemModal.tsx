@@ -444,9 +444,15 @@ export function ItemModal({ item, isOpen, onClose, session, onItemUpdated, onIte
               className="text-red-600 hover:opacity-75 disabled:opacity-50 transition-opacity"
               title="Delete"
             >
-              <span className="text-xl">✕</span>
+              <span className="text-xl">🗑️</span>
             </button>
           </div>
+          <button
+            onClick={onClose}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            ✕
+          </button>
         </div>
 
         {/* Content */}
