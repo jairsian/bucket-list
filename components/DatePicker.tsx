@@ -186,19 +186,19 @@ export function DatePicker({
               ))}
             </div>
           </div>
-        </div>
-      )}
 
-      {/* Time Input */}
-      {showTime && (
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Start Time (optional)</label>
-          <input
-            type="time"
-            value={startTime}
-            onChange={(e) => onStartTimeChange(e.target.value)}
-            className="w-full rounded-lg border border-border bg-card px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-          />
+          {/* Time Input */}
+          {showTime && (
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">Start Time (optional)</label>
+              <input
+                type="time"
+                value={startTime}
+                onChange={(e) => onStartTimeChange(e.target.value)}
+                className="w-full rounded-lg border border-border bg-card px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+          )}
         </div>
       )}
     </div>
