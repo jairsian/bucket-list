@@ -132,11 +132,11 @@ export default function MapView() {
         </div>
       </header>
 
-      {/* Main Content - Two Column Layout */}
+      {/* Main Content - Two Column Layout on Desktop, List on Mobile */}
       <div className="flex h-[calc(100vh-80px)]">
-        {/* Left Sidebar - Item List */}
-        <div className="w-96 bg-background border-r border-border overflow-y-auto">
-          <div className="p-8">
+        {/* Left Sidebar - Item List (Full width on mobile, 384px on desktop) */}
+        <div className="w-full md:w-96 bg-background md:border-r border-border overflow-y-auto">
+          <div className="p-6 md:p-8">
             <h2 className="text-3xl font-heading font-bold text-foreground mb-2">Map</h2>
             <p className="text-muted-foreground mb-6">Explore places others have saved.</p>
 
@@ -170,8 +170,8 @@ export default function MapView() {
           </div>
         </div>
 
-        {/* Right Side - Map */}
-        <div className="flex-1">
+        {/* Right Side - Map (Hidden on mobile, shown as drawer) */}
+        <div className="hidden md:flex md:flex-1">
           {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? (
             <LoadScript
               googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
@@ -244,6 +244,62 @@ export default function MapView() {
         onItemUpdated={handleItemUpdated}
         onItemDeleted={handleItemDeleted}
       />
+
+      {/* Map Drawer (Mobile) */}
+      {selectedItemForModal && (
+        <div className="fixed inset-0 md:hidden z-40" onClick={() => setSelectedItemForModal(null)}>
+          <div className="fixed bottom-0 left-0 right-0 h-2/3 bg-background border-t border-border rounded-t-2xl shadow-lg flex flex-col" onClick={(e) => e.stopPropagation()}>
+            {/* Drawer Header */}
+            <div className="flex justify-between items-center p-4 border-b border-border">
+              <h3 className="font-semibold text-foreground">{selectedItemForModal.title}</h3>
+              <button
+                onClick={() => setSelectedItemForModal(null)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Map */}
+            <div className="flex-1 overflow-hidden">
+              {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? (
+                <LoadScript
+                  googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+                  libraries={['places']}
+                >
+                  <GoogleMap
+                    mapContainerStyle={{ height: '100%', width: '100%' }}
+                    center={{
+                      lat: selectedItemForModal.latitude || 40.7128,
+                      lng: selectedItemForModal.longitude || -74.006,
+                    }}
+                    zoom={15}
+                    options={{
+                      mapTypeControl: false,
+                      fullscreenControl: false,
+                      zoomControl: true,
+                    }}
+                  >
+                    {selectedItemForModal.latitude && selectedItemForModal.longitude && (
+                      <MarkerF
+                        position={{
+                          lat: selectedItemForModal.latitude,
+                          lng: selectedItemForModal.longitude,
+                        }}
+                        icon={getMarkerColor(selectedItemForModal.type)}
+                      />
+                    )}
+                  </GoogleMap>
+                </LoadScript>
+              ) : (
+                <div className="flex items-center justify-center h-full bg-muted">
+                  <p className="text-muted-foreground">Google Maps not configured</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
