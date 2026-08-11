@@ -352,14 +352,101 @@ export function ItemModal({ item, isOpen, onClose, session, onItemUpdated, onIte
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="bg-background rounded-lg border border-border shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="sticky top-0 bg-background border-b border-border p-6 flex justify-between items-center">
+        <div className="sticky top-0 bg-background border-b border-border p-6 flex justify-between items-center gap-4">
           <h2 className="text-2xl font-heading font-bold text-foreground">{item.title}</h2>
-          <button
-            onClick={onClose}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-          >
-            ✕
-          </button>
+          <div className="flex items-center gap-3">
+            {item.instagram_url && (
+              <a
+                href={item.instagram_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground hover:opacity-75 transition-opacity"
+                title="View on Instagram"
+              >
+                <span className="text-xl">📸</span>
+              </a>
+            )}
+
+            {item.google_place_id ? (
+              <a
+                href={`https://www.google.com/maps/place/?q=place_id:${item.google_place_id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground hover:opacity-75 transition-opacity"
+                title="Open in Google Maps"
+              >
+                <span className="text-xl">🗺️</span>
+              </a>
+            ) : item.address ? (
+              <a
+                href={`https://www.google.com/maps/search/${encodeURIComponent(item.address)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground hover:opacity-75 transition-opacity"
+                title="Open in Google Maps"
+              >
+                <span className="text-xl">🗺️</span>
+              </a>
+            ) : null}
+
+            <button
+              onClick={handleExportCalendar}
+              className="text-foreground hover:opacity-75 transition-opacity"
+              title="Add to Calendar"
+            >
+              <span className="text-xl">📅</span>
+            </button>
+
+            <button
+              onClick={toggleVisited}
+              disabled={updating}
+              className="text-primary hover:opacity-75 disabled:opacity-50 transition-opacity"
+              title={item.visited ? 'Mark as Unvisited' : 'Mark as Visited'}
+            >
+              <span className="text-xl">{item.visited ? '↩' : '✓'}</span>
+            </button>
+
+            {!isEditing ? (
+              <button
+                onClick={() => {
+                  setEditData({
+                    title: item.title,
+                    type: item.type,
+                    address: item.address || '',
+                    notes: item.notes || '',
+                    description: item.description || '',
+                    website_url: item.website_url || '',
+                    instagram_url: item.instagram_url || '',
+                    event_date: item.event_date || '',
+                    event_time: item.event_time || '',
+                    google_place_id: item.google_place_id || '',
+                  });
+                  setIsEditing(true);
+                }}
+                className="text-foreground hover:opacity-75 transition-opacity"
+                title="Edit"
+              >
+                <span className="text-xl">✎</span>
+              </button>
+            ) : (
+              <button
+                onClick={handleSave}
+                disabled={updating}
+                className="px-3 py-1 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50 text-sm font-medium"
+              >
+                {updating ? 'Saving...' : 'Save'}
+              </button>
+            )}
+
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={updating}
+              className="text-red-600 hover:opacity-75 disabled:opacity-50 transition-opacity"
+              title="Delete"
+            >
+              <span className="text-xl">✕</span>
+            </button>
+          </div>
         </div>
 
         {/* Content */}
@@ -561,100 +648,6 @@ export function ItemModal({ item, isOpen, onClose, session, onItemUpdated, onIte
             </>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-4 pt-4 border-t border-border">
-            {item.instagram_url && (
-              <a
-                href={item.instagram_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-foreground hover:opacity-75 transition-opacity"
-                title="View on Instagram"
-              >
-                <span className="text-xl">📸</span>
-              </a>
-            )}
-
-            {item.google_place_id ? (
-              <a
-                href={`https://www.google.com/maps/place/?q=place_id:${item.google_place_id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-foreground hover:opacity-75 transition-opacity"
-                title="Open in Google Maps"
-              >
-                <span className="text-xl">🗺️</span>
-              </a>
-            ) : item.address ? (
-              <a
-                href={`https://www.google.com/maps/search/${encodeURIComponent(item.address)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-foreground hover:opacity-75 transition-opacity"
-                title="Open in Google Maps"
-              >
-                <span className="text-xl">🗺️</span>
-              </a>
-            ) : null}
-
-            <button
-              onClick={handleExportCalendar}
-              className="text-foreground hover:opacity-75 transition-opacity"
-              title="Add to Calendar"
-            >
-              <span className="text-xl">📅</span>
-            </button>
-
-            <button
-              onClick={toggleVisited}
-              disabled={updating}
-              className="text-primary hover:opacity-75 disabled:opacity-50 transition-opacity"
-              title={item.visited ? 'Mark as Unvisited' : 'Mark as Visited'}
-            >
-              <span className="text-xl">{item.visited ? '↩' : '✓'}</span>
-            </button>
-
-            {!isEditing ? (
-              <button
-                onClick={() => {
-                  setEditData({
-                    title: item.title,
-                    type: item.type,
-                    address: item.address || '',
-                    notes: item.notes || '',
-                    description: item.description || '',
-                    website_url: item.website_url || '',
-                    instagram_url: item.instagram_url || '',
-                    event_date: item.event_date || '',
-                    event_time: item.event_time || '',
-                    google_place_id: item.google_place_id || '',
-                  });
-                  setIsEditing(true);
-                }}
-                className="text-foreground hover:opacity-75 transition-opacity"
-                title="Edit"
-              >
-                <span className="text-xl">✎</span>
-              </button>
-            ) : (
-              <button
-                onClick={handleSave}
-                disabled={updating}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50 text-sm font-medium"
-              >
-                {updating ? 'Saving...' : 'Save'}
-              </button>
-            )}
-
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              disabled={updating}
-              className="text-red-600 hover:opacity-75 disabled:opacity-50 transition-opacity"
-              title="Delete"
-            >
-              <span className="text-xl">✕</span>
-            </button>
-          </div>
         </div>
       </div>
 
