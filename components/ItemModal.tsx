@@ -352,8 +352,16 @@ export function ItemModal({ item, isOpen, onClose, session, onItemUpdated, onIte
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="bg-background rounded-lg border border-border shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="sticky top-0 bg-background border-b border-border p-6 flex justify-between items-center gap-4">
-          <h2 className="text-2xl font-heading font-bold text-foreground">{item.title}</h2>
+        <div className="sticky top-0 bg-background border-b border-border p-6 space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-heading font-bold text-foreground">{item.title}</h2>
+            <button
+              onClick={onClose}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              ✕
+            </button>
+          </div>
           <div className="flex items-center gap-3">
             {item.instagram_url && (
               <a
@@ -447,12 +455,6 @@ export function ItemModal({ item, isOpen, onClose, session, onItemUpdated, onIte
               <span className="text-xl">🗑️</span>
             </button>
           </div>
-          <button
-            onClick={onClose}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-          >
-            ✕
-          </button>
         </div>
 
         {/* Content */}
