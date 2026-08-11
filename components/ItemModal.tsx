@@ -45,6 +45,7 @@ export function ItemModal({ item, isOpen, onClose, session, onItemUpdated, onIte
 
   useEffect(() => {
     if (item && isOpen) {
+      setItemPhotoUrl(null); // Clear old photo when switching items
       fetchItemDetails();
     }
   }, [item, isOpen]);
@@ -90,9 +91,7 @@ export function ItemModal({ item, isOpen, onClose, session, onItemUpdated, onIte
         }
       }
 
-      if (photoUrl) {
-        setItemPhotoUrl(photoUrl);
-      }
+      setItemPhotoUrl(photoUrl);
 
       // Fetch tags
       const tagsResponse = await fetch(`/api/item-tags?itemId=${item.id}`, {
