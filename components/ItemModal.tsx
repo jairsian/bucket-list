@@ -467,7 +467,7 @@ export function ItemModal({ item, isOpen, onClose, session, onItemUpdated, onIte
                 alt={item.title}
                 className="w-full h-96 object-cover rounded-lg"
               />
-              {item.google_place_id && (
+              {item.google_place_id && !item.website_url && (
                 <button
                   onClick={() => setShowPhotoSelector(true)}
                   className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors opacity-0 group-hover:opacity-100"
