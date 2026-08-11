@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { searchPlaces, getPlaceDetails, PlaceSearchResult } from '@/lib/places';
 import { extractPlaceIdFromMapUrl } from '@/lib/deeplink';
 import { TagSelector } from '@/components/TagSelector';
+import { DatePicker } from '@/components/DatePicker';
 
 function AddItemContent() {
   const router = useRouter();
@@ -366,46 +367,15 @@ function AddItemContent() {
 
           {/* 6. Dates & Time (always show for events) */}
           {type === 'event' && (
-            <>
-              <div>
-                <label htmlFor="eventDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Start Date
-                </label>
-                <input
-                  id="eventDate"
-                  type="date"
-                  value={eventDate}
-                  onChange={(e) => setEventDate(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="eventEndDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  End Date (optional)
-                </label>
-                <input
-                  id="eventEndDate"
-                  type="date"
-                  value={eventEndDate}
-                  onChange={(e) => setEventEndDate(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="eventTime" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Start Time (optional)
-                </label>
-                <input
-                  id="eventTime"
-                  type="time"
-                  value={eventTime}
-                  onChange={(e) => setEventTime(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-                />
-              </div>
-            </>
+            <DatePicker
+              startDate={eventDate}
+              endDate={eventEndDate}
+              startTime={eventTime}
+              onStartDateChange={setEventDate}
+              onEndDateChange={setEventEndDate}
+              onStartTimeChange={setEventTime}
+              showTime={true}
+            />
           )}
 
           {/* 7. Description (if not instagram, if not website) */}

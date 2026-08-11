@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Item, supabase } from '@/lib/supabase';
 import { PhotoSelector } from './PhotoSelector';
+import { DatePicker } from './DatePicker';
 import { searchPlaces, getPlaceDetails, PlaceSearchResult } from '@/lib/places';
 
 interface ItemModalProps {
@@ -493,36 +494,15 @@ export function ItemModal({ item, isOpen, onClose, session, onItemUpdated, onIte
 
                 {/* 6. Dates & Time (always show for events) */}
                 {editData.type === 'event' && (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Start Date</label>
-                      <input
-                        type="date"
-                        value={editData.event_date}
-                        onChange={(e) => setEditData({ ...editData, event_date: e.target.value })}
-                        className="w-full rounded-lg border border-border bg-card px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">End Date</label>
-                      <input
-                        type="date"
-                        className="w-full rounded-lg border border-border bg-card px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                        placeholder="Optional"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-2">Start Time</label>
-                      <input
-                        type="time"
-                        value={editData.event_time}
-                        onChange={(e) => setEditData({ ...editData, event_time: e.target.value })}
-                        className="w-full rounded-lg border border-border bg-card px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                  </>
+                  <DatePicker
+                    startDate={editData.event_date}
+                    endDate=""
+                    startTime={editData.event_time}
+                    onStartDateChange={(date) => setEditData({ ...editData, event_date: date })}
+                    onEndDateChange={() => {}}
+                    onStartTimeChange={(time) => setEditData({ ...editData, event_time: time })}
+                    showTime={true}
+                  />
                 )}
 
                 {/* 7. Description (if not instagram, if not website) */}
