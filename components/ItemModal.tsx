@@ -53,16 +53,45 @@ export function ItemModal({ item, isOpen, onClose, session, onItemUpdated, onIte
     if (!item || !session) return;
 
     try {
-      // Fetch photo
-      if (item.google_place_id) {
-        const selectedPhotoIndex = item.selected_photo_index || 0;
-        const photoResponse = await fetch(
-          `/api/place-photo?placeId=${item.google_place_id}&selectedPhotoIndex=${selectedPhotoIndex}`
-        );
-        if (photoResponse.ok) {
-          const photoData = await photoResponse.json();
-          setItemPhotoUrl(photoData.photoUrl);
+      // Fetch photo prioritizing source: website → instagram → google places
+      let photoUrl: string | null = null;
+
+      // Priority 1: Website image (if shared from website)
+      if (item.website_url) {
+        try {
+          const websiteResponse = await fetch(
+            `/api/website-image?url=${encodeURIComponent(item.website_url)}`
+          );
+          if (websiteResponse.ok) {
+            const websiteData = await websiteResponse.json();
+            photoUrl = websiteData.imageUrl || null;
+          }
+        } catch (error) {
+          console.error(`Error fetching website image:`, error);
         }
+      }
+
+      // Priority 2: Instagram image (if shared from Instagram)
+      // TODO: Add Instagram image extraction when available
+
+      // Priority 3: Google Places image (fallback)
+      if (!photoUrl && item.google_place_id) {
+        try {
+          const selectedPhotoIndex = item.selected_photo_index || 0;
+          const photoResponse = await fetch(
+            `/api/place-photo?placeId=${item.google_place_id}&selectedPhotoIndex=${selectedPhotoIndex}`
+          );
+          if (photoResponse.ok) {
+            const photoData = await photoResponse.json();
+            photoUrl = photoData.photoUrl || null;
+          }
+        } catch (error) {
+          console.error(`Error fetching photo:`, error);
+        }
+      }
+
+      if (photoUrl) {
+        setItemPhotoUrl(photoUrl);
       }
 
       // Fetch tags

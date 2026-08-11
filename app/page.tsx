@@ -94,10 +94,31 @@ export default function Home() {
         }
         setItemTags(tagMap);
 
-        // Fetch place photos for items with google_place_id, or website images
+        // Fetch photos prioritizing source: website → instagram → google places
         const photoMap: PlacePhotoMap = {};
         for (const item of itemsData || []) {
-          if (item.google_place_id) {
+          let photoUrl: string | null = null;
+
+          // Priority 1: Website image (if shared from website)
+          if (item.website_url && !photoUrl) {
+            try {
+              const websiteResponse = await fetch(
+                `/api/website-image?url=${encodeURIComponent(item.website_url)}`
+              );
+              if (websiteResponse.ok) {
+                const websiteData = await websiteResponse.json();
+                photoUrl = websiteData.imageUrl || null;
+              }
+            } catch (error) {
+              console.error(`Error fetching website image for ${item.id}:`, error);
+            }
+          }
+
+          // Priority 2: Instagram image (if shared from Instagram)
+          // TODO: Add Instagram image extraction when available
+
+          // Priority 3: Google Places image (fallback)
+          if (!photoUrl && item.google_place_id) {
             try {
               const selectedPhotoIndex = item.selected_photo_index || 0;
               const photoResponse = await fetch(
@@ -105,26 +126,14 @@ export default function Home() {
               );
               if (photoResponse.ok) {
                 const photoData = await photoResponse.json();
-                photoMap[item.id] = photoData.photoUrl || null;
+                photoUrl = photoData.photoUrl || null;
               }
             } catch (error) {
               console.error(`Error fetching photo for ${item.id}:`, error);
-              photoMap[item.id] = null;
-            }
-          } else if (item.website_url && !photoMap[item.id]) {
-            try {
-              const websiteResponse = await fetch(
-                `/api/website-image?url=${encodeURIComponent(item.website_url)}`
-              );
-              if (websiteResponse.ok) {
-                const websiteData = await websiteResponse.json();
-                photoMap[item.id] = websiteData.imageUrl || null;
-              }
-            } catch (error) {
-              console.error(`Error fetching website image for ${item.id}:`, error);
-              photoMap[item.id] = null;
             }
           }
+
+          photoMap[item.id] = photoUrl;
         }
         setPlacePhotos(photoMap);
       } catch (error) {
