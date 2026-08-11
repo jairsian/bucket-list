@@ -132,10 +132,10 @@ export default function MapView() {
         </div>
       </header>
 
-      {/* Main Content - Two Column Layout on Desktop, List on Mobile */}
-      <div className="flex h-[calc(100vh-80px)]">
-        {/* Left Sidebar - Item List (Full width on mobile, 384px on desktop) */}
-        <div className="w-full md:w-96 bg-background md:border-r border-border overflow-y-auto">
+      {/* Main Content - Side by side on desktop, stacked on mobile */}
+      <div className="flex flex-col md:flex-row h-[calc(100vh-80px)]">
+        {/* Left Sidebar - Item List (Bottom half on mobile, left side on desktop) */}
+        <div className="w-full md:w-96 h-1/2 md:h-full bg-background md:border-r border-t md:border-t-0 border-border overflow-y-auto">
           <div className="p-6 md:p-8">
             <h2 className="text-3xl font-heading font-bold text-foreground mb-2">Map</h2>
             <p className="text-muted-foreground mb-6">Explore places others have saved.</p>
@@ -170,8 +170,8 @@ export default function MapView() {
           </div>
         </div>
 
-        {/* Right Side - Map (Hidden on mobile, shown as drawer) */}
-        <div className="hidden md:flex md:flex-1">
+        {/* Right Side - Map (Top half on mobile, right side on desktop) */}
+        <div className="w-full h-1/2 md:h-full md:flex-1 flex">
           {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? (
             <LoadScript
               googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
