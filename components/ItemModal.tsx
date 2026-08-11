@@ -416,40 +416,6 @@ export function ItemModal({ item, isOpen, onClose, session, onItemUpdated, onIte
             <>
               {/* Edit Mode */}
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Search Google Places</label>
-                  <form onSubmit={handleSearchPlace} className="flex gap-2 mb-2">
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search for a place..."
-                      className="flex-1 rounded-lg border border-border bg-card px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                    <button
-                      type="submit"
-                      disabled={searching}
-                      className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50 font-medium"
-                    >
-                      {searching ? 'Searching...' : 'Search'}
-                    </button>
-                  </form>
-                  {searchResults.length > 0 && (
-                    <div className="space-y-2 mb-4 max-h-40 overflow-y-auto border border-border rounded-lg">
-                      {searchResults.map((place) => (
-                        <button
-                          key={place.placeId}
-                          onClick={() => selectPlace(place)}
-                          className="w-full text-left p-2 hover:bg-muted transition-colors"
-                        >
-                          <p className="font-medium text-foreground">{place.name}</p>
-                          <p className="text-sm text-muted-foreground">{place.formattedAddress}</p>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
                 {/* 1. Type */}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">Type</label>
