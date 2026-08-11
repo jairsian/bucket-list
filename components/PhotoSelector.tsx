@@ -11,7 +11,7 @@ interface Photo {
 interface PhotoSelectorProps {
   placeId: string;
   selectedIndex: number;
-  onSelect: (index: number) => void;
+  onSelect: (index: number, photoUrl: string) => void;
   onClose: () => void;
 }
 
@@ -127,7 +127,7 @@ export function PhotoSelector({ placeId, selectedIndex, onSelect, onClose }: Pho
             </button>
             <button
               onClick={() => {
-                onSelect(currentIndex);
+                onSelect(currentIndex, photos[currentIndex].photoUrl);
                 onClose();
               }}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"

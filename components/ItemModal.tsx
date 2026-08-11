@@ -140,22 +140,14 @@ export function ItemModal({ item, isOpen, onClose, session, onItemUpdated, onIte
     }
   }
 
-  async function handlePhotoSelect(photoIndex: number) {
+  async function handlePhotoSelect(photoIndex: number, photoUrl: string) {
     if (!item) return;
 
     try {
-      // Optimistically fetch and display the new photo immediately
-      if (item.google_place_id) {
-        const photoResponse = await fetch(
-          `/api/place-photo?placeId=${item.google_place_id}&selectedPhotoIndex=${photoIndex}`
-        );
-        if (photoResponse.ok) {
-          const photoData = await photoResponse.json();
-          setItemPhotoUrl(photoData.photoUrl);
-        }
-      }
+      // Display the new photo immediately (no fetching needed)
+      setItemPhotoUrl(photoUrl);
 
-      // Then persist the change in background
+      // Persist the change in background
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token;
       if (!token) {
