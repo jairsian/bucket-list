@@ -21,6 +21,7 @@ export function DatePicker({
   onStartTimeChange,
   showTime = true,
 }: DatePickerProps) {
+  const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState<'single' | 'range'>('single');
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
@@ -82,119 +83,124 @@ export function DatePicker({
     return dateString === startDate || dateString === endDate;
   };
 
+  const formatDateDisplay = (dateStr: string) => {
+    if (!dateStr) return 'Select date';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
   return (
-    <div className="space-y-4">
-      {/* Mode Toggle */}
-      <div className="flex gap-2">
-        <button
-          onClick={() => setMode('single')}
-          className={`flex-1 px-3 py-2 rounded-lg font-medium text-sm transition ${
-            mode === 'single'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-muted text-foreground hover:bg-muted/80'
-          }`}
-        >
-          Single Date
-        </button>
-        <button
-          onClick={() => setMode('range')}
-          className={`flex-1 px-3 py-2 rounded-lg font-medium text-sm transition ${
-            mode === 'range'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-muted text-foreground hover:bg-muted/80'
-          }`}
-        >
-          Date Range
-        </button>
-      </div>
+    <div className="space-y-2">
+      {/* Date Picker Button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full rounded-lg border border-border bg-card px-3 py-2 text-foreground text-left hover:bg-muted/50 transition flex items-center justify-between"
+      >
+        <span className="text-sm">
+          {mode === 'range' && endDate
+            ? `${formatDateDisplay(startDate)} → ${formatDateDisplay(endDate)}`
+            : formatDateDisplay(startDate)}
+        </span>
+        <span className="text-muted-foreground">📅</span>
+      </button>
 
-      {/* Calendar */}
-      <div className="border border-border rounded-lg p-4 bg-card">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <button
-            onClick={handlePrevMonth}
-            className="p-1 hover:bg-muted rounded transition"
-          >
-            ←
-          </button>
-          <h3 className="font-semibold text-foreground">{monthName}</h3>
-          <button
-            onClick={handleNextMonth}
-            className="p-1 hover:bg-muted rounded transition"
-          >
-            →
-          </button>
-        </div>
-
-        {/* Day headers */}
-        <div className="grid grid-cols-7 gap-1 mb-2">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-            <div key={day} className="text-center text-xs font-medium text-muted-foreground py-2">
-              {day}
-            </div>
-          ))}
-        </div>
-
-        {/* Days */}
-        <div className="grid grid-cols-7 gap-1">
-          {days.map((day, i) => (
+      {/* Calendar Modal */}
+      {isOpen && (
+        <div className="border border-border rounded-lg p-4 bg-card space-y-3">
+          {/* Mode Toggle */}
+          <div className="flex gap-2">
             <button
-              key={i}
-              onClick={() => day && handleDateClick(day)}
-              disabled={!day}
-              className={`aspect-square rounded text-sm font-medium transition ${
-                !day
-                  ? 'opacity-0 cursor-default'
-                  : isStartOrEndDate(day)
+              onClick={() => setMode('single')}
+              className={`flex-1 px-3 py-2 rounded-lg font-medium text-sm transition ${
+                mode === 'single'
                   ? 'bg-primary text-primary-foreground'
-                  : isDateInRange(day)
-                  ? 'bg-primary/20 text-foreground'
-                  : 'hover:bg-muted text-foreground'
+                  : 'bg-muted text-foreground hover:bg-muted/80'
               }`}
             >
-              {day}
+              Single
             </button>
-          ))}
-        </div>
-      </div>
+            <button
+              onClick={() => setMode('range')}
+              className={`flex-1 px-3 py-2 rounded-lg font-medium text-sm transition ${
+                mode === 'range'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-foreground hover:bg-muted/80'
+              }`}
+            >
+              Range
+            </button>
+          </div>
 
-      {/* Selected Dates Display */}
-      <div className="space-y-2">
+          {/* Calendar */}
+          <div className="border border-border rounded-lg p-3 bg-background">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-3">
+              <button
+                onClick={handlePrevMonth}
+                className="p-1 hover:bg-muted rounded transition text-sm"
+              >
+                ←
+              </button>
+              <h3 className="font-semibold text-foreground text-sm">{monthName}</h3>
+              <button
+                onClick={handleNextMonth}
+                className="p-1 hover:bg-muted rounded transition text-sm"
+              >
+                →
+              </button>
+            </div>
+
+            {/* Day headers */}
+            <div className="grid grid-cols-7 gap-1 mb-2">
+              {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
+                <div key={day} className="text-center text-xs font-medium text-muted-foreground py-1">
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            {/* Days */}
+            <div className="grid grid-cols-7 gap-1">
+              {days.map((day, i) => (
+                <button
+                  key={i}
+                  onClick={() => {
+                    if (day) {
+                      handleDateClick(day);
+                      if (mode === 'single') setIsOpen(false);
+                    }
+                  }}
+                  disabled={!day}
+                  className={`h-7 rounded text-xs font-medium transition ${
+                    !day
+                      ? 'opacity-0 cursor-default'
+                      : isStartOrEndDate(day)
+                      ? 'bg-primary text-primary-foreground'
+                      : isDateInRange(day)
+                      ? 'bg-primary/20 text-foreground'
+                      : 'hover:bg-muted text-foreground'
+                  }`}
+                >
+                  {day}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Time Input */}
+      {showTime && (
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Start Date</label>
+          <label className="block text-sm font-medium text-foreground mb-1">Start Time (optional)</label>
           <input
-            type="date"
-            value={startDate}
-            onChange={(e) => onStartDateChange(e.target.value)}
+            type="time"
+            value={startTime}
+            onChange={(e) => onStartTimeChange(e.target.value)}
             className="w-full rounded-lg border border-border bg-card px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
-
-        {mode === 'range' && (
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1">End Date (optional)</label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => onEndDateChange(e.target.value)}
-              className="w-full rounded-lg border border-border bg-card px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-        )}
-
-        {showTime && (
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Start Time (optional)</label>
-            <input
-              type="time"
-              value={startTime}
-              onChange={(e) => onStartTimeChange(e.target.value)}
-              className="w-full rounded-lg border border-border bg-card px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }
